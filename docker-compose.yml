@@ -1,0 +1,74 @@
+services:
+  service-admin-backend:
+    build: ./adminService
+    container_name: service-admin-backend
+    ports:
+      - "3001:3000"
+    restart: always
+    environment:
+      DB_HOST: admin-db
+      DB_USER: postgres
+      DB_PASS: postgres
+      DB_NAME: admindb
+      DB_PORT: 5432
+      REDIS_HOST: redis-admin
+      REDIS_PORT: 6379
+    env_file:
+      - adminService/.env
+    volumes:
+      - ./adminService/src/uploads:/usr/src/app/uploads
+    depends_on:
+      admin-db:
+        condition: service_healthy
+    networks:
+      - aldeiaviva_network
+
+  admin-db:
+    image: postgres:15
+    container_name: admin-db
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: admindb
+    ports:
+      - "5433:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d admindb"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - admin_data:/var/lib/postgresql/data
+    networks:
+      - aldeiaviva_network
+
+  redis-admin:
+    image: redis:7
+    container_name: redis-admin
+    restart: always
+    ports:
+      - "6379:6379"
+    networks:
+      - aldeiaviva_network
+
+  nginx-admin:
+    image: nginx:alpine
+    container_name: nginx-admin
+    restart: always
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./adminService/src/uploads:/usr/share/nginx/uploads:ro
+    ports:
+      - "8080:8080"
+    depends_on:
+      - service-admin-backend
+    networks:
+      - aldeiaviva_network
+
+volumes:
+  admin_data:
+
+networks:
+  aldeiaviva_network:
+    driver: bridge
