@@ -6,11 +6,11 @@ services:
       - "3001:3000"
     restart: always
     environment:
-      DB_HOST: admin-db
-      DB_USER: postgres
-      DB_PASS: postgres
+      DB_HOST: localhost
+      DB_USER: root
+      DB_PASSWORD: 
       DB_NAME: admindb
-      DB_PORT: 5432
+      DB_PORT: 3306
       REDIS_HOST: redis-admin
       REDIS_PORT: 6379
     env_file:
@@ -24,22 +24,22 @@ services:
       - aldeiaviva_network
 
   admin-db:
-    image: postgres:15
+    image: mysql:8.0
     container_name: admin-db
     restart: always
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: admindb
+      MYSQL_ROOT_PASSWORD: ""
+      MYSQL_DATABASE: admindb
+      MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
     ports:
-      - "5433:5432"
+      - "3307:3306"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d admindb"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
       interval: 5s
       timeout: 5s
       retries: 5
     volumes:
-      - admin_data:/var/lib/postgresql/data
+      - admin_data:/var/lib/mysql
     networks:
       - aldeiaviva_network
 
