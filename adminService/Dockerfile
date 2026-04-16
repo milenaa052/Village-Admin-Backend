@@ -1,13 +1,13 @@
-FROM node:20-bookworm-slim
+FROM node:18-alpine
 
-WORKDIR /usr/src/app
+WORKDIR /app
 
 COPY package*.json ./
-RUN npm install
+RUN npm ci
 
 COPY . .
 
-RUN npm run build
+RUN rm -rf dist && npm run build
 
 EXPOSE 3000
-CMD ["node", "dist/main.js"]
+CMD ["npm", "start"]
