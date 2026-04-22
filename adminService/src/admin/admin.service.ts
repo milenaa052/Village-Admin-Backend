@@ -2,6 +2,7 @@ import { Injectable, NotFoundException, BadRequestException, ForbiddenException,
 import { InjectModel } from '@nestjs/sequelize';
 import { Admin } from '../admin/admin.model';
 import { CreateAdminDto } from './dto/create-admin.dto';
+import { UpdateAdminDto } from './dto/update-admin.dto';
 import { UserType } from '../admin/admin.model';
 
 @Injectable()
@@ -20,7 +21,7 @@ export class AdminService {
     }
 
     async create(createAdminDto: CreateAdminDto): Promise<Admin> {
-        const requiredFields: (keyof CreateAdminDto)[] = ['name', 'email', 'password'];
+        const requiredFields: (keyof CreateAdminDto)[] = ['name', 'email', 'password', 'phone'];
         for (const field of requiredFields) {
             if (!createAdminDto[field]) {
                 throw new BadRequestException('Todos os campos são obrigatórios!');
@@ -50,6 +51,7 @@ export class AdminService {
                 name: createAdminDto.name,
                 email: createAdminDto.email,
                 password: createAdminDto.password,
+                phone: createAdminDto.phone,
                 type: UserType.ADMIN
             };
 
@@ -76,4 +78,50 @@ export class AdminService {
             where: { email }
         });
     }
+
+    async update(id: number, idAdmin: number, updateAdminDto: UpdateAdminDto) {
+        if (id !== idAdmin) {
+            throw new ForbiddenException(
+                'Você não tem permissão para editar este usuário!',
+            );
+        }
+
+    const admin = await this.adminModel.findByPk(id);
+    if (!admin) {
+        throw new NotFoundException('Usuário não encontrado!');
+    }
+
+    if (updateAdminDto.email && updateAdminDto.email !== admin.email) {
+        throw new BadRequestException('Email não pode ser alterado!');
+    }
+
+    if (updateAdminDto.currentPassword && updateAdminDto.newPassword) {
+        const correctPassword = await admin.validatePassword(
+            updateAdminDto.currentPassword,
+        );
+        if (!correctPassword) {
+            throw new BadRequestException('Senha atual incorreta!');
+        }
+
+        const validate = Admin.validatePasswordLevel(
+            updateAdminDto.newPassword,
+        );
+        if (!validate.validate) {
+            throw new BadRequestException({
+                message: 'Senha muito fraca!',
+                details: validate.requirements,
+            });
+        }
+
+        admin.password = updateAdminDto.newPassword;
+    }
+
+    try {
+        Object.assign(admin, updateAdminDto);
+        await admin.save();
+        return admin;
+    } catch (error) {
+        throw new BadRequestException('Erro ao atualizar o usuário!');
+    }
+  }
 }

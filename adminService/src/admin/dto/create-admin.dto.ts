@@ -12,4 +12,8 @@ export class CreateAdminDto {
     @IsNotEmpty({ message: 'Senha é obrigatória' })
     @IsString()
     password!: string;
+
+    @IsNotEmpty({ message: 'Telefone é obrigatório' })
+    @IsString()
+    phone!: string;
 }
