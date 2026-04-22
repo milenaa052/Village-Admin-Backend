@@ -1,7 +1,9 @@
-import { Controller, Post, Get, Put, Param, Body, UseGuards, ParseIntPipe } from '@nestjs/common';
+import { Controller, Post, Get, Put, Req, Param, Body, UseGuards, ParseIntPipe } from '@nestjs/common';
 import { AdminService } from './admin.service';
 import { CreateAdminDto } from './dto/create-admin.dto';
+import { UpdateAdminDto } from './dto/update-admin.dto';
 import { AuthGuard } from '@nestjs/passport';
+import { AuthRequest } from '../auth/types/auth-request.interface';
 
 @Controller('admin')
 export class AdminController {
@@ -22,5 +24,16 @@ export class AdminController {
     @UseGuards(AuthGuard('jwt'))
     async findById(@Param('id', ParseIntPipe) id: number) {
         return this.adminService.findById(id);
+    }
+
+    @Put(':id')
+    @UseGuards(AuthGuard('jwt'))
+    async update(
+        @Param('id', ParseIntPipe) id: number,
+        @Body() updateAdminDto: UpdateAdminDto,
+        @Req() req: AuthRequest,
+    ) {
+        const loggedAdmin = req.user.idUser;
+        return this.adminService.update(id, loggedAdmin, updateAdminDto);
     }
 }

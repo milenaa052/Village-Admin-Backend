@@ -9,6 +9,7 @@ export interface AdminCreationAttributes {
     name: string;
     email: string;
     password: string;
+    phone: string;
     type: UserType;
 }
 
@@ -38,6 +39,12 @@ export class Admin extends Model<Admin, AdminCreationAttributes> {
         allowNull: false 
     })
     declare password: string;
+
+    @Column({ 
+        type: DataType.STRING,
+        allowNull: false 
+    })
+    declare phone: string;
 
     @Column({ 
         type: DataType.ENUM(...Object.values(UserType)),
