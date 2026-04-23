@@ -86,42 +86,42 @@ export class AdminService {
             );
         }
 
-    const admin = await this.adminModel.findByPk(id);
-    if (!admin) {
-        throw new NotFoundException('Usuário não encontrado!');
-    }
-
-    if (updateAdminDto.email && updateAdminDto.email !== admin.email) {
-        throw new BadRequestException('Email não pode ser alterado!');
-    }
-
-    if (updateAdminDto.currentPassword && updateAdminDto.newPassword) {
-        const correctPassword = await admin.validatePassword(
-            updateAdminDto.currentPassword,
-        );
-        if (!correctPassword) {
-            throw new BadRequestException('Senha atual incorreta!');
+        const admin = await this.adminModel.findByPk(id);
+        if (!admin) {
+            throw new NotFoundException('Usuário não encontrado!');
         }
 
-        const validate = Admin.validatePasswordLevel(
-            updateAdminDto.newPassword,
-        );
-        if (!validate.validate) {
-            throw new BadRequestException({
-                message: 'Senha muito fraca!',
-                details: validate.requirements,
-            });
+        if (updateAdminDto.email && updateAdminDto.email !== admin.email) {
+            throw new BadRequestException('Email não pode ser alterado!');
         }
 
-        admin.password = updateAdminDto.newPassword;
-    }
+        if (updateAdminDto.currentPassword && updateAdminDto.newPassword) {
+            const correctPassword = await admin.validatePassword(
+                updateAdminDto.currentPassword,
+            );
+            if (!correctPassword) {
+                throw new BadRequestException('Senha atual incorreta!');
+            }
 
-    try {
-        Object.assign(admin, updateAdminDto);
-        await admin.save();
-        return admin;
-    } catch (error) {
-        throw new BadRequestException('Erro ao atualizar o usuário!');
+            const validate = Admin.validatePasswordLevel(
+                updateAdminDto.newPassword,
+            );
+            if (!validate.validate) {
+                throw new BadRequestException({
+                    message: 'Senha muito fraca!',
+                    details: validate.requirements,
+                });
+            }
+
+            admin.password = updateAdminDto.newPassword;
+        }
+
+        try {
+            Object.assign(admin, updateAdminDto);
+            await admin.save();
+            return admin;
+        } catch (error) {
+            throw new BadRequestException('Erro ao atualizar o usuário!');
+        }
     }
-  }
 }

@@ -1,0 +1,21 @@
+import { Table, Column, Model, DataType } from 'sequelize-typescript';
+
+export interface CategoryCreationAttributes {
+    name: string;
+}
+
+@Table({ tableName: 'Categories', timestamps: false, modelName: 'Categories' })
+export class Category extends Model<Category, CategoryCreationAttributes> {
+    @Column({
+        type: DataType.INTEGER,
+        autoIncrement: true,
+        primaryKey: true,
+    })
+    declare idCategory: number;
+
+    @Column({
+        type: DataType.STRING,
+        allowNull: false,
+    })
+    declare name: string;
+}
