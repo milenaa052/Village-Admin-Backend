@@ -13,7 +13,7 @@ export interface AdminCreationAttributes {
     type: UserType;
 }
 
-@Table({ tableName: 'Admin', timestamps: false, modelName: 'Admin' })
+@Table({ tableName: 'Admin', timestamps: true, modelName: 'Admin' })
 export class Admin extends Model<Admin, AdminCreationAttributes> {
     @Column({
         type: DataType.INTEGER,

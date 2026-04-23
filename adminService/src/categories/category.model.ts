@@ -4,7 +4,7 @@ export interface CategoryCreationAttributes {
     name: string;
 }
 
-@Table({ tableName: 'Categories', timestamps: false, modelName: 'Categories' })
+@Table({ tableName: 'Categories', timestamps: true, modelName: 'Categories' })
 export class Category extends Model<Category, CategoryCreationAttributes> {
     @Column({
         type: DataType.INTEGER,
