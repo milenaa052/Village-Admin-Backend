@@ -4,9 +4,10 @@ import { Product } from './product.model';
 import { ProductService } from './product.service';
 import { ProductController } from './product.controller';
 import { AuthModule } from '../auth/auth.module';
+import { Category } from '../categories/category.model';
 
 @Module({
-  imports: [SequelizeModule.forFeature([Product]),
+  imports: [SequelizeModule.forFeature([Product, Category]),
     forwardRef(() => AuthModule),
   ],
   controllers: [ProductController],

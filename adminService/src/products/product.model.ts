@@ -1,4 +1,5 @@
-import { Table, Column, Model, DataType } from 'sequelize-typescript';
+import { Table, Column, Model, DataType, ForeignKey, BelongsTo } from 'sequelize-typescript';
+import { Category } from '../categories/category.model';
 
 export interface ProductCreationAttributes {
     name: string;
@@ -31,7 +32,7 @@ export class Product extends Model<Product, ProductCreationAttributes> {
     declare description: string;
     
     @Column({ 
-        type: DataType.NUMBER,
+        type: DataType.DECIMAL,
         allowNull: false 
     })
     declare price: number;
@@ -48,9 +49,13 @@ export class Product extends Model<Product, ProductCreationAttributes> {
     })
     declare imageUrl: string;
 
+    @ForeignKey(() => Category)
     @Column({ 
-        type: DataType.NUMBER,
+        type: DataType.INTEGER,
         allowNull: false 
     })
     declare categoryId: number;
+
+    @BelongsTo(() => Category)
+    declare category: Category;
 }

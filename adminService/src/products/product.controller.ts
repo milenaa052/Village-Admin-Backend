@@ -27,7 +27,7 @@ export class ProductController {
         return this.productService.findById(id);
     }
 
-    @Get(':name')
+    @Get('search/:name')
     @UseGuards(AuthGuard('jwt'))
     async findByProduct(@Param('name') name: string) {
         return this.productService.findByProduct(name)

@@ -4,12 +4,13 @@ import { Product } from './product.model';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { Op } from 'sequelize';
+import { Category } from '../categories/category.model';
 
 @Injectable()
 export class ProductService {
     constructor(
-        @InjectModel(Product)
-        private readonly productModel: typeof Product
+        @InjectModel(Product) private readonly productModel: typeof Product,
+        @InjectModel(Category) private readonly categoryModel: typeof Category
     ) {}
 
     async create(createProductDto: CreateProductDto): Promise<Product> {
@@ -18,6 +19,11 @@ export class ProductService {
             if (!createProductDto[field]) {
                 throw new BadRequestException(`O campo ${field} é obrigatório!`);
             }
+        }
+
+        const category = await this.categoryModel.findByPk(createProductDto.categoryId);
+        if(!category) {
+            throw new NotFoundException('Categoria não encontrada!');
         }
 
         try {

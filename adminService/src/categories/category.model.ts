@@ -1,4 +1,5 @@
-import { Table, Column, Model, DataType } from 'sequelize-typescript';
+import { Table, Column, Model, DataType, HasMany } from 'sequelize-typescript';
+import { Product } from '../products/product.model';
 
 export interface CategoryCreationAttributes {
     name: string;
@@ -18,4 +19,7 @@ export class Category extends Model<Category, CategoryCreationAttributes> {
         allowNull: false,
     })
     declare name: string;
+
+    @HasMany(() => Product)
+    declare products: Product[];
 }
