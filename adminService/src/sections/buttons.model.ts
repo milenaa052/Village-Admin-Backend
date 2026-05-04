@@ -35,6 +35,9 @@ export class Button extends Model<Button, ButtonCreationAttributes> {
     })
     declare sectionId: number;
 
-    @BelongsTo(() => Section)
+    @BelongsTo(() => Section, {
+        onDelete: 'CASCADE',
+        onUpdate: 'CASCADE'
+    })
     declare section: Section;
 }

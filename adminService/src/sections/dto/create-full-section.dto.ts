@@ -19,7 +19,7 @@ export class CreateFullSectionDto {
         icon: string;
     }[];
 
-    numbers?: {
+    stats?: {
         title: string;
         value: string;
     }[];

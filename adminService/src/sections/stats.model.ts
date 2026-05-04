@@ -1,20 +1,20 @@
 import { Table, Column, Model, DataType, ForeignKey, BelongsTo } from 'sequelize-typescript';
 import { Section } from './section.model';
 
-export interface NumberCreationAttributes {
+export interface StatCreationAttributes {
     title: string;
     value: string;
     sectionId: number;
 }
 
-@Table({ tableName: 'Numbers', timestamps: true, modelName: 'Numbers' })
-export class Number extends Model<Number, NumberCreationAttributes> {
+@Table({ tableName: 'Stats', timestamps: true, modelName: 'Stats' })
+export class Stat extends Model<Stat, StatCreationAttributes> {
     @Column({
         type: DataType.INTEGER,
         autoIncrement: true,
         primaryKey: true,
     })
-    declare idNumber: number;
+    declare idStat: number;
 
     @Column({
         type: DataType.STRING,
@@ -35,6 +35,9 @@ export class Number extends Model<Number, NumberCreationAttributes> {
     })
     declare sectionId: number;
 
-    @BelongsTo(() => Section)
+    @BelongsTo(() => Section, {
+        onDelete: 'CASCADE',
+        onUpdate: 'CASCADE'
+    })
     declare section: Section;
 }

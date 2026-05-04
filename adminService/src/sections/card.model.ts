@@ -41,7 +41,10 @@ export class Card extends Model<Card, CardCreationAttributes> {
         allowNull: false 
     })
     declare sectionId: number;
-
-    @BelongsTo(() => Section)
+    
+    @BelongsTo(() => Section, {
+        onDelete: 'CASCADE',
+        onUpdate: 'CASCADE'
+    })
     declare section: Section;
 }

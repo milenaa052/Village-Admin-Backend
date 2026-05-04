@@ -1,4 +1,9 @@
-import { Table, Column, Model, DataType } from 'sequelize-typescript';
+import { Table, Column, Model, DataType, HasMany } from 'sequelize-typescript';
+import { Content } from './content.model';
+import { Card } from './card.model';
+import { Image } from './images.model';
+import { Stat } from './stats.model';
+import { Button } from './buttons.model';
 
 export enum SectionName {
     homePage = 'Página Inicial',
@@ -19,6 +24,11 @@ export interface SectionCreationAttributes {
     subtitle: string;
 }
 
+const cascade = {
+    onDelete: 'CASCADE',
+    onUpdate: 'CASCADE'
+};
+
 @Table({ tableName: 'Sections', timestamps: true, modelName: 'Sections' })
 export class Section extends Model<Section, SectionCreationAttributes> {
     @Column({
@@ -31,6 +41,7 @@ export class Section extends Model<Section, SectionCreationAttributes> {
     @Column({
         type: DataType.ENUM(...Object.values(SectionName)),
         allowNull: false,
+        unique: true
     })
     declare name: SectionName;
 
@@ -45,4 +56,19 @@ export class Section extends Model<Section, SectionCreationAttributes> {
         allowNull: true
     })
     declare subtitle: string;
+
+    @HasMany(() => Content, cascade)
+    declare contents: Content[];
+
+    @HasMany(() => Card, cascade)
+    declare cards: Card[];
+
+    @HasMany(() => Image, cascade)
+    declare images: Image[];
+
+    @HasMany(() => Stat, cascade)
+    declare stats: Stat[];
+
+    @HasMany(() => Button, cascade)
+    declare buttons: Button[];
 }

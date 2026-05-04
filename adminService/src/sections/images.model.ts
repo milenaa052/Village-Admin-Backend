@@ -35,6 +35,9 @@ export class Image extends Model<Image, ImageCreationAttributes> {
     })
     declare sectionId: number;
 
-    @BelongsTo(() => Section)
+    @BelongsTo(() => Section, {
+        onDelete: 'CASCADE',
+        onUpdate: 'CASCADE'
+    })
     declare section: Section;
 }

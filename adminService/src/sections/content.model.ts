@@ -43,7 +43,10 @@ export class Content extends Model<Content, ContentCreationAttributes> {
         allowNull: false 
     })
     declare sectionId: number;
-
-    @BelongsTo(() => Section)
+    
+    @BelongsTo(() => Section, {
+        onDelete: 'CASCADE',
+        onUpdate: 'CASCADE'
+    })
     declare section: Section;
 }
