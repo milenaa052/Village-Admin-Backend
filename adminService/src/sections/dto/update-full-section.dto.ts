@@ -27,7 +27,7 @@ export class UpdateFullSectionDto {
 
     @IsOptional()
     @IsArray()
-    numbers?: {
+    stats?: {
         title: string;
         value: string;
     }[];

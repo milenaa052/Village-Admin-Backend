@@ -27,7 +27,7 @@ export class FullSectionService {
         try {
             const { section, contents, cards, stats, buttons, image } = dto;
             const newSection = await this.sectionModel.create(section, { transaction });
-            const sectionId = newSection.id;
+            const sectionId = newSection.idSection;
 
             if (contents?.length) {
             const contentData = contents.map(item => ({
@@ -35,7 +35,10 @@ export class FullSectionService {
                 type: item.type,
                 content: item.content
             }));
-                await this.contentModel.bulkCreate(contentData, { transaction });
+                await this.contentModel.bulkCreate(contentData, {
+                    transaction,
+                    fields: ['sectionId', 'type', 'content']
+                });
             }
 
             if (cards?.length) {
@@ -43,7 +46,10 @@ export class FullSectionService {
                 sectionId: sectionId,
                 ...card
             }));
-                await this.cardModel.bulkCreate(cardData, { transaction });
+                await this.cardModel.bulkCreate(cardData, {
+                    transaction,
+                    fields: ['sectionId', 'title', 'description', 'icon']
+                });
             }
 
             if (stats?.length) {
@@ -52,6 +58,10 @@ export class FullSectionService {
                 ...stat
             }));
                 await this.statsModel.bulkCreate(statData, { transaction });
+                await this.statsModel.bulkCreate(statData, {
+                    transaction,
+                    fields: ['sectionId', 'title', 'value']
+                });
             }
 
             if (buttons?.length) {
@@ -59,7 +69,10 @@ export class FullSectionService {
                 sectionId: sectionId,
                 ...buttons
             }));
-                await this.buttonsModel.bulkCreate(buttonsData, { transaction });
+                await this.buttonsModel.bulkCreate(buttonsData, {
+                    transaction,
+                    fields: ['sectionId', 'label', 'link']
+                });
             }
 
             if (image?.length) {
@@ -67,7 +80,10 @@ export class FullSectionService {
                 sectionId: sectionId,
                 ...image
             }));
-                await this.imageModel.bulkCreate(imageData, { transaction });
+                await this.imageModel.bulkCreate(imageData, {
+                    transaction,
+                    fields: ['sectionId', 'imageUrl', 'altText']
+                });
             }
 
             await transaction.commit();
@@ -79,6 +95,7 @@ export class FullSectionService {
 
         } catch (error) {
             await transaction.rollback();
+            console.error(error);
             throw new BadRequestException('Erro ao criar seção completa');
         }
     }

@@ -1,36 +1,45 @@
-import { ContentType } from "../content.model";
-import { SectionName } from "../section.model";
+import { IsOptional, IsArray, ValidateNested } from "class-validator";
+import { Type } from "class-transformer";
+import { ContentDto } from "./content.dto";
+import { CardDto } from "./card.dto";
+import { StatsDto } from "./stats.dto";
+import { ButtonDto } from "./buttons.dto";
+import { ImageDto } from "./image.dto";
+import { CreateSectionDto } from "./create-section.dto";
 
 export class CreateFullSectionDto {
-    section?: {
-        name: SectionName;
-        title: string;
-        subtitle: string;
-    };
+    @IsOptional()
+    @ValidateNested()
+    @Type(() => CreateSectionDto)
+    section?: CreateSectionDto;
 
-    contents?: {
-        type: ContentType;
-        content: string;
-    }[];
+    @IsOptional()
+    @IsArray()
+    @ValidateNested({ each: true })
+    @Type(() => ContentDto)
+    contents?: ContentDto[];
 
-    cards?: {
-        title: string;
-        description: string;
-        icon: string;
-    }[];
+    @IsOptional()
+    @IsArray()
+    @ValidateNested({ each: true })
+    @Type(() => CardDto)
+    cards?: CardDto[];
 
-    stats?: {
-        title: string;
-        value: string;
-    }[];
+    @IsOptional()
+    @IsArray()
+    @ValidateNested({ each: true })
+    @Type(() => StatsDto)
+    stats?: StatsDto[];
 
-    buttons?: {
-        label: string;
-        link: string;
-    }[];
+    @IsOptional()
+    @IsArray()
+    @ValidateNested({ each: true })
+    @Type(() => ButtonDto)
+    buttons?: ButtonDto[];
 
-    image?: {
-        imageUrl: string;
-        altText: string;
-    }[];
+    @IsOptional()
+    @IsArray()
+    @ValidateNested({ each: true })
+    @Type(() => ImageDto)
+    image?: ImageDto[];
 }
