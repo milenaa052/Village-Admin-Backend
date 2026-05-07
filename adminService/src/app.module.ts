@@ -6,6 +6,12 @@ import { AppService } from './app.service';
 import { AdminModule } from './admin/admin.module';
 import { CategoryModule } from './categories/category.module';
 import { ProductModule } from './products/product.module';
+import { SectionModule } from './sections/section.module';
+import { ContentModule } from './contents/content.module';
+import { CardModule } from './cards/card.module';
+import { ButtonModule } from './buttons/button.module';
+import { StatsModule } from './stats/stats.module';
+import { ImageModule } from './images/image.module';
 
 @Module({
     imports: [
@@ -26,7 +32,13 @@ import { ProductModule } from './products/product.module';
         }),
         AdminModule,
         CategoryModule,
-        ProductModule
+        ProductModule,
+        SectionModule,
+        ContentModule,
+        CardModule,
+        ButtonModule,
+        StatsModule,
+        ImageModule
     ],
     controllers: [AppController],
     providers: [AppService],
