@@ -1,32 +1,32 @@
 import { Table, Column, Model, DataType, ForeignKey, BelongsTo } from 'sequelize-typescript';
-import { Section } from './section.model';
+import { Section } from '../sections/section.model';
 
-export interface StatCreationAttributes {
-    title: string;
-    value: string;
+export interface ImageCreationAttributes {
+    imageUrl: string;
+    altText: string;
     sectionId: number;
 }
 
-@Table({ tableName: 'Stats', timestamps: true, modelName: 'Stats' })
-export class Stat extends Model<Stat, StatCreationAttributes> {
+@Table({ tableName: 'Images', timestamps: true, modelName: 'Images' })
+export class Image extends Model<Image, ImageCreationAttributes> {
     @Column({
         type: DataType.INTEGER,
         autoIncrement: true,
         primaryKey: true,
     })
-    declare idStat: number;
+    declare idImage: number;
 
     @Column({
         type: DataType.STRING,
         allowNull: false
     })
-    declare title: string;
+    declare imageUrl: string;
 
     @Column({ 
         type: DataType.STRING,
         allowNull: false 
     })
-    declare value: string;
+    declare altText: string;
 
     @ForeignKey(() => Section)
     @Column({ 
