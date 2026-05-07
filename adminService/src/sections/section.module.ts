@@ -1,7 +1,7 @@
 import { Module, forwardRef } from '@nestjs/common';
 import { SequelizeModule } from '@nestjs/sequelize';
 import { Section } from './section.model';
-import { Content } from './content.model';
+import { Content } from '../contents/content.model';
 import { Card } from './card.model';
 import { Stat } from './stats.model';
 import { Button } from './buttons.model';

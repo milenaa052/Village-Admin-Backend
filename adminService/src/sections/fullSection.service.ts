@@ -3,7 +3,7 @@ import { InjectModel } from '@nestjs/sequelize';
 import { Section } from './section.model';
 import { CreateFullSectionDto } from './dto/create-full-section.dto';
 import { Sequelize } from 'sequelize-typescript';
-import { Content } from './content.model';
+import { Content } from '../contents/content.model';
 import { Card } from './card.model';
 import { Stat } from './stats.model';
 import { Button } from './buttons.model';
@@ -57,7 +57,6 @@ export class FullSectionService {
                 sectionId: sectionId,
                 ...stat
             }));
-                await this.statsModel.bulkCreate(statData, { transaction });
                 await this.statsModel.bulkCreate(statData, {
                     transaction,
                     fields: ['sectionId', 'title', 'value']
@@ -101,109 +100,29 @@ export class FullSectionService {
     }
 
     async findAll() {
-        return await this.sectionModel.findAll();
+        return await this.sectionModel.findAll({
+            include: [
+                { model: Content },
+                { model: Card },
+                { model: Stat },
+                { model: Button },
+                { model: Image }
+            ]
+        });
     }
 
     async findById(id: number) {
-        const section = await this.sectionModel.findByPk(id);
+        const section = await this.sectionModel.findByPk(id, {
+            include: [
+                { model: Content },
+                { model: Card },
+                { model: Stat },
+                { model: Button },
+                { model: Image }
+            ]
+        });
 
-        if (!section) throw new NotFoundException('Seção não encontrado!');
+        if (!section) throw new NotFoundException('Seção não encontrada!');
         return section;
-    }
-
-    async updateFullSection(id: number, dto: CreateFullSectionDto) {
-        const transaction = await this.sequelize.transaction();
-
-        try {
-            const section = await this.sectionModel.findByPk(id);
-
-            if (!section) {
-                throw new NotFoundException('Seção não encontrada!');
-            }
-
-            const { section: sectionData, contents, cards, stats, buttons, image } = dto;
-
-            if (!sectionData) {
-                throw new BadRequestException('Dados da seção são obrigatórios');
-            }
-            await section.update(sectionData, { transaction });
-
-            await this.contentModel.destroy({ where: { sectionId: id }, transaction });
-            await this.cardModel.destroy({ where: { sectionId: id }, transaction });
-            await this.statsModel.destroy({ where: { sectionId: id }, transaction });
-            await this.buttonsModel.destroy({ where: { sectionId: id }, transaction });
-            await this.imageModel.destroy({ where: { sectionId: id }, transaction });
-
-            if (contents?.length) {
-                await this.contentModel.bulkCreate(
-                    contents.map(item => ({
-                        sectionId: id,
-                        ...item
-                    })),
-                    { transaction }
-                );
-            }
-
-            if (cards?.length) {
-                await this.cardModel.bulkCreate(
-                    cards.map(item => ({
-                        sectionId: id,
-                        ...item
-                    })),
-                    { transaction }
-                );
-            }
-
-            if (stats?.length) {
-                await this.statsModel.bulkCreate(
-                    stats.map(item => ({
-                        sectionId: id,
-                        ...item
-                    })),
-                    { transaction }
-                );
-            }
-
-            if (buttons?.length) {
-                await this.buttonsModel.bulkCreate(
-                    buttons.map(item => ({
-                        sectionId: id,
-                        ...item
-                    })),
-                    { transaction }
-                );
-            }
-
-            if(image?.length) {
-                await this.imageModel.bulkCreate(
-                    image?.map(item => ({
-                        sectionId: id,
-                        ...item
-                    })),
-                    { transaction }
-                )
-            }
-
-            await transaction.commit();
-
-            return {
-                message: 'Seção atualizada com sucesso!'
-            };
-
-        } catch (error) {
-            await transaction.rollback();
-            throw new BadRequestException('Erro ao atualizar seção completa');
-        }
-    }
-
-    async deleteById(id: number): Promise<{ message: string }> {
-        const section = await this.sectionModel.findByPk(id);
-        
-        if (!section) {
-            throw new NotFoundException('Seção não encontrada!');
-        }
-
-        await section.destroy();
-        return { message: 'Seção deletada com sucesso!' };
     }
 }

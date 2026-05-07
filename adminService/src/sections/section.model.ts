@@ -1,5 +1,5 @@
 import { Table, Column, Model, DataType, HasMany } from 'sequelize-typescript';
-import { Content } from './content.model';
+import { Content } from '../contents/content.model';
 import { Card } from './card.model';
 import { Image } from './images.model';
 import { Stat } from './stats.model';

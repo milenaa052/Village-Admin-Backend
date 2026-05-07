@@ -1,5 +1,5 @@
 import { Table, Column, Model, DataType, ForeignKey, BelongsTo } from 'sequelize-typescript';
-import { Section } from './section.model';
+import { Section } from '../sections/section.model';
 
 export enum ContentType {
     P1 = 'P1',

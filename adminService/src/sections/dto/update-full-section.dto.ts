@@ -1,5 +1,5 @@
 import { IsOptional, IsArray, ValidateNested } from 'class-validator';
-import { ContentType } from '../content.model';
+import { ContentType } from '../../contents/content.model';
 import { SectionName } from '../section.model';
 
 export class UpdateFullSectionDto {

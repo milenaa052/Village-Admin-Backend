@@ -1,6 +1,6 @@
 import { IsOptional, IsArray, ValidateNested } from "class-validator";
 import { Type } from "class-transformer";
-import { ContentDto } from "./content.dto";
+import { ContentDto } from "../../contents/dto/content.dto";
 import { CardDto } from "./card.dto";
 import { StatsDto } from "./stats.dto";
 import { ButtonDto } from "./buttons.dto";

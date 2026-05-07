@@ -7,6 +7,7 @@ import { AdminModule } from './admin/admin.module';
 import { CategoryModule } from './categories/category.module';
 import { ProductModule } from './products/product.module';
 import { SectionModule } from './sections/section.module';
+import { ContentModule } from './contents/content.module';
 
 @Module({
     imports: [
@@ -28,7 +29,8 @@ import { SectionModule } from './sections/section.module';
         AdminModule,
         CategoryModule,
         ProductModule,
-        SectionModule
+        SectionModule,
+        ContentModule
     ],
     controllers: [AppController],
     providers: [AppService],
