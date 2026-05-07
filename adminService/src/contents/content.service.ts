@@ -43,6 +43,6 @@ export class ContentService {
         }
 
         await content.destroy();
-        return { message: 'Conteúdo deletada com sucesso!' };
+        return { message: 'Conteúdo deletado com sucesso!' };
     }
 }

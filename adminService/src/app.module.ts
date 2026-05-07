@@ -8,6 +8,10 @@ import { CategoryModule } from './categories/category.module';
 import { ProductModule } from './products/product.module';
 import { SectionModule } from './sections/section.module';
 import { ContentModule } from './contents/content.module';
+import { CardModule } from './cards/card.module';
+import { ButtonModule } from './buttons/button.module';
+import { StatsModule } from './stats/stats.module';
+import { ImageModule } from './images/image.module';
 
 @Module({
     imports: [
@@ -30,7 +34,11 @@ import { ContentModule } from './contents/content.module';
         CategoryModule,
         ProductModule,
         SectionModule,
-        ContentModule
+        ContentModule,
+        CardModule,
+        ButtonModule,
+        StatsModule,
+        ImageModule
     ],
     controllers: [AppController],
     providers: [AppService],

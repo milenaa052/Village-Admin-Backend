@@ -1,38 +1,38 @@
 import { Controller, Get, Put, Delete, Req, Param, Body, UseGuards, ParseIntPipe } from '@nestjs/common';
-import { ContentService } from './content.service';
-import { ContentDto } from './dto/content.dto';
+import { CardService } from './card.service';
+import { CardDto } from './dto/card.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { AuthRequest } from '../auth/types/auth-request.interface';
 
-@Controller('content')
-export class ContentController {
-    constructor(private readonly contentService: ContentService) {}
+@Controller('card')
+export class CardController {
+    constructor(private readonly cardService: CardService) {}
 
     @Get()
     @UseGuards(AuthGuard('jwt'))
     async findAll() {
-        return this.contentService.findAll();
+        return this.cardService.findAll();
     }
 
     @Get(':id')
     @UseGuards(AuthGuard('jwt'))
     async findById(@Param('id', ParseIntPipe) id: number) {
-        return this.contentService.findById(id);
+        return this.cardService.findById(id);
     }
 
     @Put(':id')
     @UseGuards(AuthGuard('jwt'))
     async update(
         @Param('id', ParseIntPipe) id: number,
-        @Body() updateContentDto: ContentDto,
+        @Body() updateCardDto: CardDto,
         @Req() req: AuthRequest,
     ) {
-        return this.contentService.update(id, updateContentDto);
+        return this.cardService.update(id, updateCardDto);
     }
 
     @Delete(':id')
     @UseGuards(AuthGuard('jwt'))
     async deleteById(@Param('id', ParseIntPipe) id: number) {
-        return this.contentService.deleteById(id);
+        return this.cardService.deleteById(id);
     }
 }

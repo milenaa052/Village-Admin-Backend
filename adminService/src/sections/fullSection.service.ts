@@ -4,10 +4,10 @@ import { Section } from './section.model';
 import { CreateFullSectionDto } from './dto/create-full-section.dto';
 import { Sequelize } from 'sequelize-typescript';
 import { Content } from '../contents/content.model';
-import { Card } from './card.model';
-import { Stat } from './stats.model';
-import { Button } from './buttons.model';
-import { Image } from './images.model';
+import { Card } from '../cards/card.model';
+import { Stats } from '../stats/stats.model';
+import { Button } from '../buttons/buttons.model';
+import { Image } from '../images/images.model';
 
 @Injectable()
 export class FullSectionService {
@@ -15,7 +15,7 @@ export class FullSectionService {
         @InjectModel(Section) private readonly sectionModel: typeof Section,
         @InjectModel(Content) private readonly contentModel: typeof Content,
         @InjectModel(Card) private readonly cardModel: typeof Card,
-        @InjectModel(Stat) private readonly statsModel: typeof Stat,
+        @InjectModel(Stats) private readonly statsModel: typeof Stats,
         @InjectModel(Button) private readonly buttonsModel: typeof Button,
         @InjectModel(Image) private readonly imageModel: typeof Image,
         private readonly sequelize: Sequelize,
@@ -104,7 +104,7 @@ export class FullSectionService {
             include: [
                 { model: Content },
                 { model: Card },
-                { model: Stat },
+                { model: Stats },
                 { model: Button },
                 { model: Image }
             ]
@@ -116,7 +116,7 @@ export class FullSectionService {
             include: [
                 { model: Content },
                 { model: Card },
-                { model: Stat },
+                { model: Stats },
                 { model: Button },
                 { model: Image }
             ]

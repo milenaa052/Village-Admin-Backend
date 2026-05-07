@@ -1,9 +1,9 @@
 import { Table, Column, Model, DataType, HasMany } from 'sequelize-typescript';
 import { Content } from '../contents/content.model';
-import { Card } from './card.model';
-import { Image } from './images.model';
-import { Stat } from './stats.model';
-import { Button } from './buttons.model';
+import { Card } from '../cards/card.model';
+import { Image } from '../images/images.model';
+import { Stats } from '../stats/stats.model';
+import { Button } from '../buttons/buttons.model';
 
 export enum SectionName {
     homePage = 'Página Inicial',
@@ -66,8 +66,8 @@ export class Section extends Model<Section, SectionCreationAttributes> {
     @HasMany(() => Image, cascade)
     declare images: Image[];
 
-    @HasMany(() => Stat, cascade)
-    declare stats: Stat[];
+    @HasMany(() => Stats, cascade)
+    declare stats: Stats[];
 
     @HasMany(() => Button, cascade)
     declare buttons: Button[];
