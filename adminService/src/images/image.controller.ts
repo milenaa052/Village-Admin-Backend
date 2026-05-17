@@ -1,8 +1,11 @@
-import { Controller, Get, Put, Delete, Req, Param, Body, UseGuards, ParseIntPipe } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Param, Body, UploadedFile, UseGuards, ParseIntPipe, UploadedFiles, UseInterceptors, HttpCode } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
+import multerOptions from '../uploads/multer.config';
 import { ImageService } from './image.service';
-import { ImageDto } from './dto/image.dto';
+import { CreateImageDto } from './dto/create-image.dto';
+import { UpdateImageDto } from './dto/update.image.dto';
 import { AuthGuard } from '@nestjs/passport';
-import { AuthRequest } from '../auth/types/auth-request.interface';
+import { AdminGuard } from '../common/guards/admin.guard';
 
 @Controller('images')
 export class ImageController {
@@ -20,19 +23,59 @@ export class ImageController {
         return this.imageService.findById(id);
     }
 
+    @Post()
+    @UseGuards(AuthGuard('jwt'), AdminGuard)
+    @UseInterceptors(
+        FileInterceptor('file', multerOptions),
+    )
+    async create(
+        @Body() createImageDto: CreateImageDto,
+
+        @UploadedFile()
+        file: Express.Multer.File,
+    ) {
+        return this.imageService.create(
+            createImageDto,
+            file,
+        );
+    }
+
     @Put(':id')
-    @UseGuards(AuthGuard('jwt'))
+    @UseGuards(AuthGuard('jwt'), AdminGuard)
     async update(
         @Param('id', ParseIntPipe) id: number,
-        @Body() updateImageDto: ImageDto,
-        @Req() req: AuthRequest,
+
+        @Body()
+        updateImageDto: UpdateImageDto,
     ) {
-        return this.imageService.update(id, updateImageDto);
+        return this.imageService.update(
+            id,
+            updateImageDto,
+        );
+    }
+
+    @Put(':id/upload')
+    @UseGuards(AuthGuard('jwt'), AdminGuard)
+    @UseInterceptors(
+        FileInterceptor('file', multerOptions),
+    )
+    async updateImage(
+        @Param('id', ParseIntPipe) id: number,
+
+        @UploadedFile()
+        file: Express.Multer.File,
+    ) {
+        return this.imageService.updateImage(
+            id,
+            file,
+        );
     }
 
     @Delete(':id')
-    @UseGuards(AuthGuard('jwt'))
-    async deleteById(@Param('id', ParseIntPipe) id: number) {
+    @UseGuards(AuthGuard('jwt'), AdminGuard)
+    async deleteById(
+        @Param('id', ParseIntPipe) id: number,
+    ) {
         return this.imageService.deleteById(id);
     }
 }

@@ -116,10 +116,10 @@ DELETE /api/products/:id
 Essa organização evita o acoplamento excessivo e facilita a evolução do sistema, permitindo alterações em uma camada sem impactar diretamente as demais.
 
 ## 2.2 Diagrama da Arquitetura
-![Diagrama UML](./images//Diagrama%20UML.drawio.png)
+![Diagrama UML](./docs//Diagrama%20UML.drawio.png)
 
 ## 2.3 Diagrama de Atividades
-![Diagrama de Atividades](./images/Diagrama%20de%20Atividades.drawio.png)
+![Diagrama de Atividades](./docs/Diagrama%20de%20Atividades.drawio.png)
 
 # REFERÊNCIAS
 
