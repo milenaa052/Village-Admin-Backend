@@ -3,9 +3,6 @@ import { Type } from 'class-transformer';
 
 export class CreateImageDto {
     @IsString()
-    imageUrl!: string;
-
-    @IsString()
     altText!: string;
 
     @IsNumber()

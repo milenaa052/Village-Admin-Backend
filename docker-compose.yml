@@ -9,6 +9,7 @@ services:
       - adminService/.env
     volumes:
       - ./adminService/src/uploads:/usr/src/app/uploads
+      - ./uploads:/app/uploads
     depends_on:
       admin-db:
         condition: service_healthy

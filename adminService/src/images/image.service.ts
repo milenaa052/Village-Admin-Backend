@@ -42,7 +42,6 @@ export class ImageService {
         console.log(createImageDto);
         console.log(file);
 
-
         try {
             const image = await this.imageModel.create({
                 altText: createImageDto.altText,

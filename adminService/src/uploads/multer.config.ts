@@ -3,7 +3,7 @@ import { extname, join } from 'path';
 import { v4 as uuidv4 } from 'uuid';
 import { existsSync, mkdirSync } from 'fs';
 
-const UPLOAD_DIR = process.env.UPLOAD_DIR || 'uploads/images';
+const UPLOAD_DIR = join(process.cwd(), 'uploads');
 
 if (!existsSync(UPLOAD_DIR)) {
     mkdirSync(UPLOAD_DIR, { recursive: true });
@@ -38,11 +38,15 @@ export const multerOptions = {
         file: Express.Multer.File,
         cb: Function,
     ) => {
-        const allowed = /jpeg|jpg|png/;
+        const allowedMimeTypes = [
+            'image/jpeg',
+            'image/jpg',
+            'image/png',
+        ];
 
         const mimetype = file.mimetype.toLowerCase();
 
-        if (allowed.test(mimetype)) {
+        if (allowedMimeTypes.includes(mimetype)) {
             cb(null, true);
         } else {
             cb(

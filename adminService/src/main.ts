@@ -14,7 +14,7 @@ async function bootstrap() {
     credentials: true,
   });
 
-  const uploadDir = process.env.UPLOAD_DIR || 'uploads';
+  const uploadDir = join(process.cwd(), 'uploads');
   app.useStaticAssets(join(__dirname, '..', uploadDir), {
     prefix: '/uploads',
   });
