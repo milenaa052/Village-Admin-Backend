@@ -15,10 +15,10 @@ export async function removeFileByUrl(fileUrl?: string) {
         }
 
         if (!filename) return;
-
+        
         const fullPath = isAbsolute(filename)
             ? filename
-            : join(process.cwd(), UPLOAD_DIR, filename);
+            : join(UPLOAD_DIR, filename);
 
         if (existsSync(fullPath)) {
             await unlink(fullPath);

@@ -3,7 +3,7 @@ import { InjectModel } from '@nestjs/sequelize';
 import { Image } from './images.model';
 import { CreateImageDto } from './dto/create-image.dto';
 import { UpdateImageDto } from './dto/update.image.dto';
-import { removeFileByUrl, imageUrlFromFilename } from '../uploads/upload.utils';
+import { removeFileByUrl, imageUrlFromFilename } from './config/upload.utils';
 import { extname } from 'path';
 import { existsSync } from 'fs';
 import FileType from 'file-type';
@@ -39,8 +39,6 @@ export class ImageService {
         }
 
         await this.validateImage(file);
-        console.log(createImageDto);
-        console.log(file);
 
         try {
             const image = await this.imageModel.create({

@@ -1,11 +1,11 @@
 import { Controller, Get, Post, Put, Delete, Param, Body, UploadedFile, UseGuards, ParseIntPipe, UploadedFiles, UseInterceptors, HttpCode } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import multerOptions from '../uploads/multer.config';
+import multerOptions from './config/multer.config';
 import { ImageService } from './image.service';
 import { CreateImageDto } from './dto/create-image.dto';
 import { UpdateImageDto } from './dto/update.image.dto';
 import { AuthGuard } from '@nestjs/passport';
-import { AdminGuard } from '../common/guards/admin.guard';
+import { AdminGuard } from './guards/admin.guard';
 
 @Controller('images')
 export class ImageController {
