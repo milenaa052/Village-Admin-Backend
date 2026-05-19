@@ -4,7 +4,6 @@ import { ContentDto } from "../../contents/dto/content.dto";
 import { CardDto } from "../../cards/dto/card.dto";
 import { StatsDto } from "../../stats/dto/stats.dto";
 import { ButtonDto } from "../../buttons/dto/buttons.dto";
-import { ImageDto } from "../../images/dto/image.dto";
 import { CreateSectionDto } from "./create-section.dto";
 
 export class CreateFullSectionDto {
@@ -36,10 +35,4 @@ export class CreateFullSectionDto {
     @ValidateNested({ each: true })
     @Type(() => ButtonDto)
     buttons?: ButtonDto[];
-
-    @IsOptional()
-    @IsArray()
-    @ValidateNested({ each: true })
-    @Type(() => ImageDto)
-    image?: ImageDto[];
 }

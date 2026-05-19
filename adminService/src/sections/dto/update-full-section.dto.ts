@@ -1,4 +1,4 @@
-import { IsOptional, IsArray, ValidateNested } from 'class-validator';
+import { IsOptional, IsArray } from 'class-validator';
 import { ContentType } from '../../contents/content.model';
 import { SectionName } from '../section.model';
 
@@ -37,12 +37,5 @@ export class UpdateFullSectionDto {
     buttons?: {
         label: string;
         link: string;
-    }[];
-
-    @IsOptional()
-    @IsArray()
-    image?: {
-        imageUrl: string;
-        altText: string;
     }[];
 }

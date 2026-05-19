@@ -3,7 +3,7 @@ import { InjectModel } from '@nestjs/sequelize';
 import { Image } from './images.model';
 import { CreateImageDto } from './dto/create-image.dto';
 import { UpdateImageDto } from './dto/update.image.dto';
-import { removeFileByUrl, imageUrlFromFilename } from '../uploads/upload.utils';
+import { removeFileByUrl, imageUrlFromFilename } from './config/upload.utils';
 import { extname } from 'path';
 import { existsSync } from 'fs';
 import FileType from 'file-type';
@@ -39,8 +39,6 @@ export class ImageService {
         }
 
         await this.validateImage(file);
-        console.log(createImageDto);
-        console.log(file);
 
         try {
             const image = await this.imageModel.create({
@@ -62,6 +60,7 @@ export class ImageService {
     async update(
         id: number,
         updateImageDto: UpdateImageDto,
+        file?: Express.Multer.File,
     ) {
         const image = await this.imageModel.findByPk(id);
 
@@ -71,59 +70,63 @@ export class ImageService {
             );
         }
 
+        let oldImageUrl = image.imageUrl;
+
         try {
+
+            // Atualiza altText
             if (updateImageDto.altText !== undefined) {
                 image.altText = updateImageDto.altText;
             }
 
-            await image.save();
+            // Atualiza imagem se existir arquivo
+            if (file) {
 
-            return image;
-        } catch (err) {
-            throw new BadRequestException(
-                'Erro ao atualizar imagem!',
-            );
-        }
-    }
+                if (!file.filename || !file.path) {
+                    throw new BadRequestException(
+                        'Arquivo inválido',
+                    );
+                }
 
-    async updateImage(
-        id: number,
-        file: Express.Multer.File,
-    ) {
-        const image = await this.imageModel.findByPk(id);
+                await this.validateImage(file);
 
-        if (!image) {
-            throw new NotFoundException(
-                'Imagem não encontrada!',
-            );
-        }
-
-        if (!file || !file.filename || !file.path) {
-            throw new BadRequestException(
-                'Arquivo não enviado ou inválido',
-            );
-        }
-
-        await this.validateImage(file);
-
-        const oldImage = image.imageUrl;
-
-        try {
-            image.imageUrl = imageUrlFromFilename(
-                file.filename,
-            );
+                image.imageUrl = imageUrlFromFilename(
+                    file.filename,
+                );
+            }
 
             await image.save();
 
-            if (oldImage) {
-                await removeFileByUrl(oldImage);
+            // Remove imagem antiga SOMENTE após salvar
+            if (
+                file &&
+                oldImageUrl &&
+                oldImageUrl !== image.imageUrl
+            ) {
+                await removeFileByUrl(oldImageUrl);
             }
 
             return image;
+
         } catch (err) {
-            await removeFileByUrl(
-                imageUrlFromFilename(file.filename),
-            );
+
+            // Remove nova imagem caso erro
+            if (file?.path) {
+                try {
+                    await removeFileByUrl(
+                        imageUrlFromFilename(
+                            file.filename,
+                        ),
+                    );
+                } catch {}
+            }
+
+            if (
+                err instanceof BadRequestException ||
+                err instanceof NotFoundException
+            ) {
+                throw err;
+            }
 
             throw new BadRequestException(
                 'Erro ao atualizar imagem',

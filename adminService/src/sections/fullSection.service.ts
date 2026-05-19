@@ -7,7 +7,6 @@ import { Content } from '../contents/content.model';
 import { Card } from '../cards/card.model';
 import { Stats } from '../stats/stats.model';
 import { Button } from '../buttons/buttons.model';
-import { Image } from '../images/images.model';
 
 @Injectable()
 export class FullSectionService {
@@ -17,7 +16,6 @@ export class FullSectionService {
         @InjectModel(Card) private readonly cardModel: typeof Card,
         @InjectModel(Stats) private readonly statsModel: typeof Stats,
         @InjectModel(Button) private readonly buttonsModel: typeof Button,
-        @InjectModel(Image) private readonly imageModel: typeof Image,
         private readonly sequelize: Sequelize,
     ) {}
 
@@ -25,7 +23,7 @@ export class FullSectionService {
         const transaction = await this.sequelize.transaction();
 
         try {
-            const { section, contents, cards, stats, buttons, image } = dto;
+            const { section, contents, cards, stats, buttons } = dto;
             const newSection = await this.sectionModel.create(section, { transaction });
             const sectionId = newSection.idSection;
 
@@ -74,17 +72,6 @@ export class FullSectionService {
                 });
             }
 
-            if (image?.length) {
-            const imageData = image.map(image => ({
-                sectionId: sectionId,
-                ...image
-            }));
-                await this.imageModel.bulkCreate(imageData, {
-                    transaction,
-                    fields: ['sectionId', 'imageUrl', 'altText']
-                });
-            }
-
             await transaction.commit();
 
             return {
@@ -105,8 +92,7 @@ export class FullSectionService {
                 { model: Content },
                 { model: Card },
                 { model: Stats },
-                { model: Button },
-                { model: Image }
+                { model: Button }
             ]
         });
     }
@@ -117,8 +103,7 @@ export class FullSectionService {
                 { model: Content },
                 { model: Card },
                 { model: Stats },
-                { model: Button },
-                { model: Image }
+                { model: Button }
             ]
         });
 
