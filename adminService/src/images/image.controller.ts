@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Put, Delete, Param, Body, UploadedFile, UseGuards, ParseIntPipe, UploadedFiles, UseInterceptors, HttpCode } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Delete, Param, Body, UploadedFile, UseGuards, ParseIntPipe, UploadedFiles, UseInterceptors, HttpCode } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import multerOptions from './config/multer.config';
 import { ImageService } from './image.service';
@@ -40,33 +40,18 @@ export class ImageController {
         );
     }
 
-    @Put(':id')
-    @UseGuards(AuthGuard('jwt'), AdminGuard)
-    async update(
+    @Patch(':id')
+    @UseInterceptors(
+        FileInterceptor('file', multerOptions),
+    )
+    update(
         @Param('id', ParseIntPipe) id: number,
-
-        @Body()
-        updateImageDto: UpdateImageDto,
+        @Body() updateImageDto: UpdateImageDto,
+        @UploadedFile() file?: Express.Multer.File,
     ) {
         return this.imageService.update(
             id,
             updateImageDto,
-        );
-    }
-
-    @Put(':id/upload')
-    @UseGuards(AuthGuard('jwt'), AdminGuard)
-    @UseInterceptors(
-        FileInterceptor('file', multerOptions),
-    )
-    async updateImage(
-        @Param('id', ParseIntPipe) id: number,
-
-        @UploadedFile()
-        file: Express.Multer.File,
-    ) {
-        return this.imageService.updateImage(
-            id,
             file,
         );
     }
