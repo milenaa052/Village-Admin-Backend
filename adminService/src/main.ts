@@ -8,6 +8,8 @@ import { MulterExceptionFilter } from './images/filters/multer-exception.filter'
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
+  app.setGlobalPrefix('api');
+
   app.enableCors({
     origin: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
@@ -15,7 +17,7 @@ async function bootstrap() {
   });
 
   const uploadDir = join(process.cwd(), 'uploads');
-  app.useStaticAssets(join(__dirname, '..', uploadDir), {
+  app.useStaticAssets(uploadDir, {
     prefix: '/uploads',
   });
 

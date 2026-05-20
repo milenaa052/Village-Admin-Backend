@@ -74,12 +74,10 @@ export class ImageService {
 
         try {
 
-            // Atualiza altText
             if (updateImageDto.altText !== undefined) {
                 image.altText = updateImageDto.altText;
             }
 
-            // Atualiza imagem se existir arquivo
             if (file) {
 
                 if (!file.filename || !file.path) {
@@ -97,7 +95,6 @@ export class ImageService {
 
             await image.save();
 
-            // Remove imagem antiga SOMENTE após salvar
             if (
                 file &&
                 oldImageUrl &&
@@ -110,7 +107,6 @@ export class ImageService {
 
         } catch (err) {
 
-            // Remove nova imagem caso erro
             if (file?.path) {
                 try {
                     await removeFileByUrl(
