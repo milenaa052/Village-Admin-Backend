@@ -17,9 +17,7 @@ async function bootstrap() {
   });
 
   const uploadDir = join(process.cwd(), 'uploads');
-  app.useStaticAssets(uploadDir, {
-    prefix: '/uploads',
-  });
+  app.useStaticAssets(uploadDir, { prefix: '/uploads' });
 
   app.useGlobalPipes(
   new ValidationPipe({
