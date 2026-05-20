@@ -2,7 +2,7 @@ import { join, isAbsolute } from 'path';
 import { unlink } from 'fs/promises';
 import { existsSync } from 'fs';
 
-const UPLOAD_DIR = join(process.cwd(), 'uploads');
+const UPLOAD_DIR = '/app/uploads';
 
 export async function removeFileByUrl(fileUrl?: string) {
     if (!fileUrl) return;
