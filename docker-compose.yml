@@ -8,8 +8,13 @@ services:
     env_file:
       - adminService/.env
     volumes:
-      - ./adminService/src/uploads:/usr/src/app/uploads
       - ./uploads:/app/uploads
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
     depends_on:
       admin-db:
         condition: service_healthy
@@ -51,11 +56,12 @@ services:
     restart: always
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./adminService/src/uploads:/usr/share/nginx/uploads:ro
+      - ./uploads:/usr/share/nginx/uploads:ro
     ports:
       - "8080:8080"
     depends_on:
-      - service-admin-backend
+      service-admin-backend:
+        condition: service_healthy
     networks:
       - aldeiaviva_network
 

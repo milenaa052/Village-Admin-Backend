@@ -71,11 +71,14 @@ O tráfego é centralizado pelo Nginx, que distribui as requisições para os mi
 
 ## Backend
 
-- **Controllers:** responsáveis por receber e responder requisições HTTP.
+- **Controllers:** responsáveis por receber e responder requisições HTTP e definição de rotas da aplicação.
 - **Services:** responsáveis pela implementação das regras de negócio.
-- **Repositories/DAO:** responsáveis pela comunicação com o banco de dados.
-- **Middleware:** camada responsável pela comunicação entre diferentes serviços e gerenciamento de autenticação.
-- **Routes:** definição de rotas da aplicação.
+- **Models:** responsáveis pela comunicação com o banco de dados.
+- **Module:** unidade fundamental de organização do código. Ele atua como um contêiner que agrupa componentes com um domínio ou responsabilidade em comum.
+- **DTO:** usado para transportar dados entre diferentes camadas de um sistema ou entre microsserviços sem expor a estrutura interna do banco de dados.
+- **Auth:** camada responsável pela comunicação entre diferentes serviços e gerenciamento de autenticação.
+- **Guards:** função para apenas usuários administradores ter acesso a algumas rotas.
+- **Filters:** serve para interceptar erros lançados pelo Multer durante uploads de arquivos e retornar respostas mais amigáveis e padronizadas. 
 
 ### Exemplo de endpoints
 
@@ -83,6 +86,7 @@ O tráfego é centralizado pelo Nginx, que distribui as requisições para os mi
 POST /api/products
 GET /api/products
 PUT /api/products/:id
+PATCH /api/images/:id
 DELETE /api/products/:id
 ```
 
