@@ -2,6 +2,7 @@ import { diskStorage } from 'multer';
 import { extname, join } from 'path';
 import { v4 as uuidv4 } from 'uuid';
 import { existsSync, mkdirSync } from 'fs';
+import { BadRequestException } from '@nestjs/common';
 
 const UPLOAD_DIR = '/app/uploads';
 
@@ -50,7 +51,7 @@ export const multerOptions = {
             cb(null, true);
         } else {
             cb(
-                new Error(
+                new BadRequestException(
                     'Invalid file type. Only jpg, jpeg and png are allowed.',
                 ),
                 false,
