@@ -1,6 +1,6 @@
 import { Table, Column, Model, DataType, ForeignKey, BelongsTo } from 'sequelize-typescript'
 import { Section } from '../sections/section.model'
-import { ButtonCreationAttributes } from './dto/buttons.dto'
+import { ButtonCreationAttributes } from './interface/button.interface'
 
 @Table({ tableName: 'Buttons', timestamps: true, modelName: 'Buttons' })
 export class Button extends Model<Button, ButtonCreationAttributes> {

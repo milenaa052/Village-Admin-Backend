@@ -2,7 +2,7 @@ import { Controller, Get, Put, Delete, Req, Param, Body, UseGuards, ParseIntPipe
 import { StatsService } from './stats.service';
 import { StatsDto } from './dto/stats.dto';
 import { AuthGuard } from '@nestjs/passport';
-import { AuthRequest } from '../auth/types/auth-request.interface';
+import { AuthRequest } from '../auth/interface/auth-request.interface';
 
 @Controller('stats')
 export class StatsController {

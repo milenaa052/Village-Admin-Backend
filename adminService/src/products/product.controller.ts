@@ -3,7 +3,7 @@ import { ProductService } from './product.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { AuthGuard } from '@nestjs/passport';
-import { AuthRequest } from '../auth/types/auth-request.interface';
+import { AuthRequest } from '../auth/interface/auth-request.interface';
 
 @Controller('product')
 export class ProductController {

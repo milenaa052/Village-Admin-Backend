@@ -4,8 +4,8 @@ import { Admin } from '../admin/admin.model'
 import { CreateAdminDto } from './dto/create-admin.dto'
 import { UpdateAdminDto } from './dto/update-admin.dto'
 import { PasswordValidator } from './password.validator'
-import { AdminResponseDto } from './dto/admin-response.dto'
-import { UserType } from './admin.interface'
+import { AdminResponseDto } from './interface/admin-response.dto'
+import { UserType } from './interface/admin.interface'
 
 @Injectable()
 export class AdminService {

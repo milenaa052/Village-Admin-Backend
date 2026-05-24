@@ -1,12 +1,21 @@
-import { IsString } from 'class-validator';
+import { IsNotEmpty, IsString } from 'class-validator'
 
 export class CardDto {
     @IsString()
-    title!: string;
+    @IsNotEmpty({
+        message: 'Título é obrigatório'
+    })
+    title!: string
 
     @IsString()
-    description!: string;
+    @IsNotEmpty({
+        message: 'Descrição é obrigatória'
+    })
+    description!: string
 
     @IsString()
-    icon!: string;
+    @IsNotEmpty({
+        message: 'Ícone é obrigatório'
+    })
+    icon!: string
 }

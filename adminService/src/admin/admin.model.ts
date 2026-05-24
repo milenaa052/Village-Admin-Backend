@@ -1,6 +1,6 @@
 import { Table, Column, Model, DataType, BeforeCreate, BeforeUpdate } from 'sequelize-typescript'
 import * as bcrypt from 'bcrypt'
-import { AdminCreationAttributes, UserType } from './admin.interface'
+import { AdminCreationAttributes, UserType } from './interface/admin.interface'
 
 @Table({
   tableName: 'admins',

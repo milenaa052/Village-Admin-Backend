@@ -2,7 +2,7 @@ import { Controller, Get, Put, Delete, Req, Param, Body, UseGuards, ParseIntPipe
 import { ContentService } from './content.service';
 import { ContentDto } from './dto/content.dto';
 import { AuthGuard } from '@nestjs/passport';
-import { AuthRequest } from '../auth/types/auth-request.interface';
+import { AuthRequest } from '../auth/interface/auth-request.interface';
 
 @Controller('content')
 export class ContentController {

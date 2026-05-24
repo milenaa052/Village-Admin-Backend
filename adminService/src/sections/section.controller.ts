@@ -3,7 +3,7 @@ import { SectionService } from './section.service';
 import { CreateSectionDto } from './dto/create-section.dto';
 import { UpdateSectionDto } from './dto/update-section.dto';
 import { AuthGuard } from '@nestjs/passport';
-import { AuthRequest } from '../auth/types/auth-request.interface';
+import { AuthRequest } from '../auth/interface/auth-request.interface';
 
 @Controller('section')
 export class SectionController {

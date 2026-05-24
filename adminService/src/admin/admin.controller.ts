@@ -3,7 +3,7 @@ import { AdminService } from './admin.service'
 import { CreateAdminDto } from './dto/create-admin.dto'
 import { UpdateAdminDto } from './dto/update-admin.dto'
 import { AuthGuard } from '@nestjs/passport'
-import { AuthRequest } from '../auth/types/auth-request.interface'
+import { AuthRequest } from '../auth/interface/auth-request.interface'
 
 @Controller('admin')
 export class AdminController {

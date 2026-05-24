@@ -2,7 +2,7 @@ import { Controller, Get, Put, Delete, Req, Param, Body, UseGuards, ParseIntPipe
 import { ButtonService } from './button.service'
 import { ButtonDto } from './dto/buttons.dto'
 import { AuthGuard } from '@nestjs/passport'
-import { AuthRequest } from '../auth/types/auth-request.interface'
+import { AuthRequest } from '../auth/interface/auth-request.interface'
 
 @UseGuards(AuthGuard('jwt'))
 @Controller('button')
