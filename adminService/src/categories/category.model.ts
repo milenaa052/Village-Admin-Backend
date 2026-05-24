@@ -1,8 +1,8 @@
-import { Table, Column, Model, DataType, HasMany } from 'sequelize-typescript';
-import { Product } from '../products/product.model';
+import { Table, Column, Model, DataType, HasMany } from 'sequelize-typescript'
+import { Product } from '../products/product.model'
 
 export interface CategoryCreationAttributes {
-    name: string;
+    name: string
 }
 
 @Table({ tableName: 'Categories', timestamps: true, modelName: 'Categories' })
@@ -12,14 +12,14 @@ export class Category extends Model<Category, CategoryCreationAttributes> {
         autoIncrement: true,
         primaryKey: true,
     })
-    declare idCategory: number;
+    declare idCategory: number
 
     @Column({
         type: DataType.STRING,
         allowNull: false,
     })
-    declare name: string;
+    declare name: string
 
     @HasMany(() => Product)
-    declare products: Product[];
+    declare products: Product[]
 }

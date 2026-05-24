@@ -4,12 +4,3 @@ export interface CardCreationAttributes {
     icon: string
     sectionId: number
 }
-
-export class CardResponseDto {
-    idCard!: number
-    title!: string
-    description!: string
-    icon!: string
-    createdAt!: Date
-    updatedAt!: Date
-}
