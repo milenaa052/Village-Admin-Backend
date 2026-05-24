@@ -1,6 +1,7 @@
 import { ExceptionFilter, Catch, ArgumentsHost, HttpStatus} from '@nestjs/common';
+import { MulterError } from 'multer';
 
-@Catch()
+@Catch(MulterError)
 export class MulterExceptionFilter implements ExceptionFilter {
   catch(exception: any, host: ArgumentsHost) {
     const ctx = host.switchToHttp();

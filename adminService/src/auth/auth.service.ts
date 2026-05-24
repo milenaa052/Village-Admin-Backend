@@ -23,50 +23,27 @@ export class AuthService {
     ) {}
 
     async validateUser(email: string, password: string): Promise<AuthenticatedUser> {
-        let user: Admin | null = await this.adminService.findByEmail(email);
-        let userType: UserType = 'ADMIN';
+        let user = await this.adminService.findByEmail(email);
 
         if (!user) {
-            user = await this.adminService.findByEmail(email);
-            userType = 'ADMIN';
-        }
-        
-        if (!user) {
-        throw new UnauthorizedException('Credenciais Inválidas!');
+            throw new UnauthorizedException('Credenciais inválidas');
         }
 
         const isPasswordValid = await user.validatePassword(password);
         if (!isPasswordValid) {
-            throw new UnauthorizedException('Credenciais Inválidas!');
-        }
-        
-        let idUser: number;
-
-        if (userType === 'ADMIN') {
-            idUser = (user as Admin).idAdmin;
-        } else {
-            throw new UnauthorizedException('Tipo de usuário inválido!');
+            throw new UnauthorizedException('Credenciais inválidas');
         }
 
         return {
-            idUser: idUser,
+            idUser: user.idAdmin,
             name: user.name,
             email: user.email,
-            userType: userType
+            userType: 'ADMIN'
         };
     }
 
     async login(loginDto: LoginDto): Promise<LoginResponse> {
         const { email, password } = loginDto;
-
-        if (!email || !password) {
-            throw new BadRequestException('Email e senha são obrigatórios!');
-        }
-
-        const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-        if (!emailRegex.test(email)) {
-            throw new BadRequestException('Formato de email inválido!');
-        }
 
         const user = await this.validateUser(email, password);
 
@@ -84,7 +61,7 @@ export class AuthService {
         }
 
         return {
-            message: 'Login realizado com sucesso!',
+            message: 'Login realizado com sucesso',
             token: this.jwtService.sign(payload, signOptions), 
             user: user
         };
@@ -98,7 +75,7 @@ export class AuthService {
         }
         
         if (!user) {
-            throw new UnauthorizedException('Usuário não encontrado!');
+            throw new UnauthorizedException('Usuário não encontrado');
         }
 
         let idUser: number;
@@ -106,11 +83,11 @@ export class AuthService {
         if (userType === 'ADMIN') {
             idUser = (user as Admin).idAdmin;
         } else {
-            throw new UnauthorizedException('Tipo de usuário inválido!');
+            throw new UnauthorizedException('Tipo de usuário inválido');
         }
 
         return {
-            message: 'Usuário autenticado com sucesso!',
+            message: 'Usuário autenticado com sucesso',
             user: {
                 idUser: idUser,
                 name: user.name,
