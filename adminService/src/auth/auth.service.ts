@@ -29,7 +29,7 @@ export class AuthService {
             throw new UnauthorizedException('Credenciais inválidas');
         }
 
-        const isPasswordValid = await user.validatePassword(password);
+        const isPasswordValid = await user.comparePassword(password);
         if (!isPasswordValid) {
             throw new UnauthorizedException('Credenciais inválidas');
         }
