@@ -1,208 +1,181 @@
-import { Injectable, NotFoundException, BadRequestException, ForbiddenException } from '@nestjs/common';
-import { InjectModel } from '@nestjs/sequelize';
-import { Image } from './images.model';
-import { CreateImageDto } from './dto/create-image.dto';
-import { UpdateImageDto } from './dto/update.image.dto';
-import { removeFileByUrl, imageUrlFromFilename } from './config/upload.utils';
-import { extname } from 'path';
-import { existsSync } from 'fs';
-import FileType from 'file-type';
+import { Injectable, NotFoundException, BadRequestException, InternalServerErrorException } from '@nestjs/common'
+import { InjectModel } from '@nestjs/sequelize'
+import { extname } from 'path'
+import { existsSync } from 'fs'
+import FileType from 'file-type'
+import { Image } from './images.model'
+import { CreateImageDto } from './dto/create-image.dto'
+import { UpdateImageDto } from './dto/update.image.dto'
+import { removeFileByUrl, imageUrlFromFilename } from './config/upload.utils'
+import { IMAGE_UPLOAD } from './image.constants'
+import { ImageResponseDto } from './dto/image-response.dto'
 
 @Injectable()
 export class ImageService {
     constructor(
-        @InjectModel(Image) private readonly imageModel: typeof Image
+        @InjectModel(Image)
+        private readonly imageModel: typeof Image
     ) {}
 
     async findAll() {
-        return await this.imageModel.findAll();
+        const images = await this.imageModel.findAll()
+
+        return images.map((image) =>
+            this.formatResponse(image)
+        )
     }
 
-    async findById(id: number) {
-        const image = await this.imageModel.findByPk(id);
-
-        if (!image) {
-            throw new NotFoundException('Imagem não encontrada!');
-        }
-
-        return image;
+    async findOneById(id: number) {
+        const image = await this.getImageOrFail(id)
+        return this.formatResponse(image)
     }
 
-    async create(
-        createImageDto: CreateImageDto,
-        file: Express.Multer.File,
-    ) {
+    async create( createImageDto: CreateImageDto, file: Express.Multer.File) {
         if (!file || !file.filename || !file.path) {
             throw new BadRequestException(
-                'Arquivo não enviado ou inválido',
-            );
+                'Arquivo não enviado ou inválido'
+            )   
         }
 
-        await this.validateImage(file);
+        await this.validateImage(file)
 
         try {
             const image = await this.imageModel.create({
                 altText: createImageDto.altText,
                 sectionId: createImageDto.sectionId,
-                imageUrl: imageUrlFromFilename(file.filename),
-            });
+                imageUrl: imageUrlFromFilename(
+                    file.filename,
+                )
+            })
+            
+            return this.formatResponse(image)
+        } catch (error) {
+            await removeFileByUrl(
+                file.path
+            )
 
-            return image;
-        } catch (err) {
-            await removeFileByUrl(file.path);
-
-            throw new BadRequestException(
-                'Erro ao criar imagem',
-            );
+            throw new InternalServerErrorException('Erro ao criar imagem')
         }
     }
 
     async update(
         id: number,
         updateImageDto: UpdateImageDto,
-        file?: Express.Multer.File,
+        file?: Express.Multer.File
     ) {
-        const image = await this.imageModel.findByPk(id);
-
-        if (!image) {
-            throw new NotFoundException(
-                'Imagem não encontrada!',
-            );
-        }
-
-        let oldImageUrl = image.imageUrl;
+        const image = await this.getImageOrFail(id)
+        const previousImageUrl = image.imageUrl
 
         try {
-
-            if (updateImageDto.altText !== undefined) {
-                image.altText = updateImageDto.altText;
-            }
+            image.altText = updateImageDto.altText ?? image.altText
 
             if (file) {
-
                 if (!file.filename || !file.path) {
-                    throw new BadRequestException(
-                        'Arquivo inválido',
-                    );
+                    throw new BadRequestException('Arquivo inválido')
                 }
 
-                await this.validateImage(file);
-
-                image.imageUrl = imageUrlFromFilename(
-                    file.filename,
-                );
+                await this.validateImage(file)
+                image.imageUrl = imageUrlFromFilename(file.filename)
             }
 
-            await image.save();
+            await image.save()
 
             if (
                 file &&
-                oldImageUrl &&
-                oldImageUrl !== image.imageUrl
+                previousImageUrl &&
+                previousImageUrl !==
+                image.imageUrl
             ) {
-                await removeFileByUrl(oldImageUrl);
+                await removeFileByUrl(previousImageUrl)
             }
 
-            return image;
-
-        } catch (err) {
-
+            return this.formatResponse(image)
+        } catch (error) {
             if (file?.path) {
-                try {
-                    await removeFileByUrl(
-                        imageUrlFromFilename(
-                            file.filename,
-                        ),
-                    );
-                } catch {}
+                await removeFileByUrl(file.path)
             }
 
             if (
-                err instanceof BadRequestException ||
-                err instanceof NotFoundException
+                error instanceof BadRequestException ||
+                error instanceof NotFoundException
             ) {
-                throw err;
+                throw error
             }
 
-            throw new BadRequestException(
-                'Erro ao atualizar imagem',
-            );
+            throw new InternalServerErrorException('Erro ao atualizar imagem')
         }
     }
 
-    async deleteById(id: number) {
-        const image = await this.imageModel.findByPk(id);
-
-        if (!image) {
-            throw new NotFoundException(
-                'Imagem não encontrada!',
-            );
-        }
+    async deleteById(id: number): Promise<{ message: string }> {
+        const image = await this.getImageOrFail(id)
 
         if (image.imageUrl) {
-            await removeFileByUrl(image.imageUrl);
+            await removeFileByUrl(image.imageUrl)
         }
 
-        await image.destroy();
+        await image.destroy()
 
         return {
-            message: 'Imagem deletada com sucesso!',
-        };
+            message: 'Imagem deletada com sucesso'
+        }
     }
 
-    private async validateImage(
-        file: Express.Multer.File,
-    ) {
+    private async getImageOrFail(id: number): Promise<Image> {
+        const image = await this.imageModel.findByPk(id)
+
+        if (!image) {
+            throw new NotFoundException('Imagem não encontrada')
+        }
+
+        return image
+    }
+
+    private async validateImage(file: Express.Multer.File): Promise<void> {
         try {
-
-            const fileType = await FileType.fromFile(file.path);
-            const allowedExts = ['jpg', 'jpeg', 'png'];
+            const fileType = await FileType.fromFile(file.path)
 
             if (
-                !fileType ||
-                !allowedExts.includes(fileType.ext)
+                !fileType || !IMAGE_UPLOAD.ALLOWED_EXTENSIONS.includes(
+                    fileType.ext
+                )
             ) {
-                await removeFileByUrl(file.path);
+                await removeFileByUrl(file.path)
 
-                throw new BadRequestException(
-                    'Arquivo inválido. Apenas jpg, jpeg e png são permitidos.',
-                );
+                throw new BadRequestException('Arquivo inválido. Apenas jpg, jpeg e png são permitidos')
             }
 
-            const originalExt = extname(
-                file.originalname || '',
-            )
-                .replace('.', '')
-                .toLowerCase();
+            const originalExtension = extname(file.originalname).replace('.', '').toLowerCase()
 
             if (
-                originalExt &&
-                originalExt !== fileType.ext
+                originalExtension &&
+                originalExtension !==
+                fileType.ext
             ) {
-                await removeFileByUrl(file.path);
+                await removeFileByUrl(file.path)
 
-                throw new BadRequestException(
-                    'Extensão do arquivo não confere com conteúdo.',
-                );
+                throw new BadRequestException('Extensão do arquivo não confere com o conteúdo enviado')
             }
-        } catch (err) {
-            if (err instanceof BadRequestException) {
-                throw err;
+        } catch (error) {
+            if (error instanceof BadRequestException) {
+                throw error
             }
 
-            try {
-                if (
-                    file &&
-                    file.path &&
-                    existsSync(file.path)
-                ) {
-                    await removeFileByUrl(file.path);
-                }
-            } catch {}
+            if (file?.path && existsSync(file.path)) {
+                await removeFileByUrl(file.path)
+            }
 
-            throw new BadRequestException(
-                'Erro ao validar imagem enviada',
-            );
+            throw new BadRequestException('Erro ao validar imagem enviada')
+        }
+    }
+
+    private formatResponse(image: Image): ImageResponseDto {
+        return {
+            idImage: image.idImage,
+            imageUrl: image.imageUrl,
+            altText: image.altText,
+            sectionId: image.sectionId,
+            createdAt: image.createdAt,
+            updatedAt: image.updatedAt
         }
     }
 }
