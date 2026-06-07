@@ -1,9 +1,15 @@
-import { IsString } from 'class-validator';
+import { IsString, IsNotEmpty } from 'class-validator'
 
 export class StatsDto {
     @IsString()
-    title!: string;
+    @IsNotEmpty({
+        message: 'Título é obrigatório'
+    })
+    title!: string
 
     @IsString()
-    value!: string;
+    @IsNotEmpty({
+        message: 'Valor é obrigatório'
+    })
+    value!: string
 }
