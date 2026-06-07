@@ -1,10 +1,15 @@
-import { IsNumber, IsString } from 'class-validator';
-import { ContentType } from '../../contents/content.model';
+import { IsEnum, IsNotEmpty, IsString } from 'class-validator'
+import { ContentType } from '../interface/content.interface'
 
 export class ContentDto {
-    @IsString()
-    type!: ContentType;
+    @IsEnum(ContentType, {
+        message: 'Tipo de conteúdo inválido'
+    })
+    type!: ContentType
 
     @IsString()
-    content!: string;
+    @IsNotEmpty({
+        message: 'Conteúdo é obrigatório'
+    })
+    content!: string
 }
