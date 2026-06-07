@@ -1,9 +1,18 @@
-import { IsString } from 'class-validator';
+import { IsNotEmpty, IsString, IsUrl } from 'class-validator'
 
 export class ButtonDto {
     @IsString()
-    label!: string;
+    @IsNotEmpty({
+        message: 'Label é obrigatória'
+    })
+    label!: string
 
     @IsString()
-    link!: string;
+    @IsNotEmpty({
+        message: 'Link é obrigatório'
+    })
+    @IsUrl({}, {
+        message: 'Link inválido'
+    })
+    link!: string
 }

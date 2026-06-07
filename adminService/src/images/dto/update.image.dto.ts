@@ -1,7 +1,7 @@
-import { IsOptional, IsString } from 'class-validator';
+import { IsOptional, IsString } from 'class-validator'
 
 export class UpdateImageDto {
     @IsOptional()
     @IsString()
-    altText?: string;
+    altText?: string
 }

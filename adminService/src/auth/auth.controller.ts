@@ -1,8 +1,8 @@
-import { Controller, Post, Body, Get, UseGuards, Request } from '@nestjs/common';
-import { AuthService } from './auth.service';
-import { AuthGuard } from '@nestjs/passport';
-import { LoginDto } from './dto/login.dto';
-import { AuthRequest } from './types/auth-request.interface';
+import { Controller, Post, Body, Get, UseGuards, Request } from '@nestjs/common'
+import { AuthService } from './auth.service'
+import { AuthGuard } from '@nestjs/passport'
+import { LoginDto } from './dto/login.dto'
+import { AuthRequest } from './interface/auth-request.interface'
 
 @Controller('auth')
 export class AuthController {
@@ -10,17 +10,17 @@ export class AuthController {
 
     @Post('login')
     async login(@Body() loginDto: LoginDto) {
-        return this.authService.login(loginDto);
+        return this.authService.login(loginDto)
     }
 
     @Get('profile')
     @UseGuards(AuthGuard('jwt'))
     async getProfile(@Request() req: AuthRequest) {
-        return this.authService.getProfile(req.user.idUser, req.user.userType);
+        return this.authService.getProfile(req.user.idUser, req.user.userType)
     }
 
     @Post('check-email')
     async checkEmail(@Body('email') email: string) {
-        return this.authService.checkEmailExists(email);
+        return this.authService.checkEmailExists(email)
     }
 }

@@ -1,9 +1,11 @@
-import { Injectable, NotFoundException, BadRequestException, ForbiddenException, ConflictException, Inject, forwardRef } from '@nestjs/common';
-import { InjectModel } from '@nestjs/sequelize';
-import { Admin } from '../admin/admin.model';
-import { CreateAdminDto } from './dto/create-admin.dto';
-import { UpdateAdminDto } from './dto/update-admin.dto';
-import { UserType } from '../admin/admin.model';
+import { Injectable, NotFoundException, BadRequestException, ForbiddenException, ConflictException, InternalServerErrorException } from '@nestjs/common'
+import { InjectModel } from '@nestjs/sequelize'
+import { Admin } from '../admin/admin.model'
+import { CreateAdminDto } from './dto/create-admin.dto'
+import { UpdateAdminDto } from './dto/update-admin.dto'
+import { PasswordValidator } from './password.validator'
+import { AdminResponseDto } from './interface/admin-response.dto'
+import { UserType } from './interface/admin.interface'
 
 @Injectable()
 export class AdminService {
@@ -12,116 +14,132 @@ export class AdminService {
         private readonly adminModel: typeof Admin
     ) {}
 
-    async checkEmailExists(email: string) {
-        const admin = await this.findByEmail(email);
+    async create(createAdminDto: CreateAdminDto): Promise<AdminResponseDto> {
+        const emailAlreadyExists = await this.findByEmail(
+            createAdminDto.email
+        )
 
-        if (admin) {
-            return true;
-        }
-    }
-
-    async create(createAdminDto: CreateAdminDto): Promise<Admin> {
-        const requiredFields: (keyof CreateAdminDto)[] = ['name', 'email', 'password', 'phone'];
-        for (const field of requiredFields) {
-            if (!createAdminDto[field]) {
-                throw new BadRequestException('Todos os campos são obrigatórios!');
-            }
+        if (emailAlreadyExists) {
+            throw new ConflictException('Este email já está cadastrado')
         }
 
-        const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-        if (!emailRegex.test(createAdminDto.email)) {
-            throw new BadRequestException('Formato de email inválido!');
-        }
+        const passwordValidation = PasswordValidator.validatePasswordLevel(
+            createAdminDto.password
+        )
 
-        const emailExists = await this.checkEmailExists(createAdminDto.email);
-        if (emailExists) {
-            throw new ConflictException('Este email já está cadastrado!');
-        }
-
-        const passwordValidation = Admin.validatePasswordLevel(createAdminDto.password);
         if (!passwordValidation.validate) {
             throw new BadRequestException({
                 message: 'Senha muito fraca',
-                details: passwordValidation.requirements,
-            });
+                requirements: passwordValidation.requirements
+            })
         }
 
         try {
-            const adminData = {
-                name: createAdminDto.name,
-                email: createAdminDto.email,
-                password: createAdminDto.password,
-                phone: createAdminDto.phone,
+            const admin = await this.adminModel.create({
+                ...createAdminDto,
                 type: UserType.ADMIN
-            };
+            })
 
-            const admin = await this.adminModel.create(adminData);
-            return admin
+            return this.formatResponse(admin);
         } catch (error) {
-            throw new BadRequestException('Erro ao criar usuário!');
+            throw new BadRequestException('Erro ao criar administrador')
         }
     }
 
     async findAll() {
-        return await this.adminModel.findAll();
+        return await this.adminModel.findAll()
     }
 
     async findById(id: number) {
-        const admin = await this.adminModel.findByPk(id);
+        const admin = await this.adminModel.findByPk(id)
 
-        if (!admin) throw new NotFoundException('Admin não encontrado!');
+        if (!admin) throw new NotFoundException('Administrador não encontrado')
         return admin;
     }
 
     async findByEmail(email: string): Promise<Admin | null> {
         return this.adminModel.findOne({
-            where: { email }
-        });
+            where: { email },
+            attributes: { 
+                include: ['password'] 
+            }
+        })
     }
 
-    async update(id: number, idAdmin: number, updateAdminDto: UpdateAdminDto) {
-        if (id !== idAdmin) {
+    async update(id: number, loggedAdminId: number, updateAdminDto: UpdateAdminDto) {
+        if (id !== loggedAdminId) {
             throw new ForbiddenException(
-                'Você não tem permissão para editar este usuário!',
-            );
+                'Você não tem permissão para editar este usuário'
+            )
         }
 
         const admin = await this.adminModel.findByPk(id);
         if (!admin) {
-            throw new NotFoundException('Usuário não encontrado!');
+            throw new NotFoundException('Administrador não encontrado!')
         }
 
         if (updateAdminDto.email && updateAdminDto.email !== admin.email) {
-            throw new BadRequestException('Email não pode ser alterado!');
+            throw new BadRequestException('O email não pode ser alterado')
         }
 
-        if (updateAdminDto.currentPassword && updateAdminDto.newPassword) {
-            const correctPassword = await admin.validatePassword(
-                updateAdminDto.currentPassword,
-            );
-            if (!correctPassword) {
-                throw new BadRequestException('Senha atual incorreta!');
-            }
-
-            const validate = Admin.validatePasswordLevel(
-                updateAdminDto.newPassword,
-            );
-            if (!validate.validate) {
-                throw new BadRequestException({
-                    message: 'Senha muito fraca!',
-                    details: validate.requirements,
-                });
-            }
-
-            admin.password = updateAdminDto.newPassword;
+        if (updateAdminDto.currentPassword || updateAdminDto.newPassword) {
+            await this.handlePasswordUpdate(
+                admin,
+                updateAdminDto
+            )
         }
+
+        admin.name = updateAdminDto.name ?? admin.name
+        admin.phone = updateAdminDto.phone ?? admin.phone
 
         try {
-            Object.assign(admin, updateAdminDto);
-            await admin.save();
-            return admin;
+            await admin.save()
+            return this.formatResponse(admin)
         } catch (error) {
-            throw new BadRequestException('Erro ao atualizar o usuário!');
+            throw new InternalServerErrorException(
+                'Erro ao atualizar administrador'
+            )
+        }
+    }
+
+    private async handlePasswordUpdate(admin: Admin, updateAdminDto: UpdateAdminDto): Promise<void> {
+        if (!updateAdminDto.currentPassword || !updateAdminDto.newPassword) {
+            throw new BadRequestException(
+                'Senha atual e nova senha são obrigatórias'
+            )
+        }
+
+        const correctPassword = await admin.comparePassword(
+            updateAdminDto.currentPassword
+        )
+
+        if (!correctPassword) {
+            throw new BadRequestException('Senha atual incorreta')
+        }
+
+        const passwordValidation = PasswordValidator.validatePasswordLevel(
+            updateAdminDto.newPassword
+        )
+
+        if (!passwordValidation.validate) {
+            throw new BadRequestException({
+                message: 'Senha muito fraca',
+                requirements: passwordValidation.requirements
+            })
+        }
+
+        admin.password = updateAdminDto.newPassword;
+    }
+
+    private formatResponse(admin: Admin): AdminResponseDto {
+        return {
+            idAdmin: admin.idAdmin,
+            name: admin.name,
+            email: admin.email,
+            phone: admin.phone,
+            type: admin.type,
+            createdAt: admin.createdAt,
+            updatedAt: admin.updatedAt
         }
     }
 }

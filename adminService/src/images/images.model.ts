@@ -1,10 +1,10 @@
-import { Table, Column, Model, DataType, ForeignKey, BelongsTo } from 'sequelize-typescript';
-import { Section } from '../sections/section.model';
+import { Table, Column, Model, DataType, ForeignKey, BelongsTo } from 'sequelize-typescript'
+import { Section } from '../sections/section.model'
 
 export interface ImageCreationAttributes {
-    imageUrl: string;
-    altText: string;
-    sectionId: number;
+    imageUrl: string
+    altText: string
+    sectionId: number
 }
 
 @Table({ tableName: 'Images', timestamps: true, modelName: 'Images' })
@@ -14,30 +14,30 @@ export class Image extends Model<Image, ImageCreationAttributes> {
         autoIncrement: true,
         primaryKey: true,
     })
-    declare idImage: number;
+    declare idImage: number
 
     @Column({
         type: DataType.STRING,
         allowNull: false
     })
-    declare imageUrl: string;
+    declare imageUrl: string
 
     @Column({ 
         type: DataType.STRING,
         allowNull: false 
     })
-    declare altText: string;
+    declare altText: string
 
     @ForeignKey(() => Section)
     @Column({ 
         type: DataType.INTEGER,
         allowNull: false 
     })
-    declare sectionId: number;
+    declare sectionId: number
 
     @BelongsTo(() => Section, {
         onDelete: 'CASCADE',
         onUpdate: 'CASCADE'
     })
-    declare section: Section;
+    declare section: Section
 }
