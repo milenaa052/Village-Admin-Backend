@@ -109,10 +109,6 @@ export class ImageService {
     async deleteById(id: number): Promise<{ message: string }> {
         const image = await this.getImageOrFail(id)
 
-        if (image.imageUrl) {
-            await removeFileByUrl(image.imageUrl)
-        }
-
         await image.destroy()
 
         return {

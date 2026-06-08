@@ -8,6 +8,12 @@ module.exports = {
 
   collectCoverage: true,
 
+  collectCoverageFrom: [
+    'src/**/*.service.ts',
+    'src/**/*.controller.ts',
+    '!src/**/*.module.ts'
+  ],
+
   coverageDirectory: 'coverage',
 
   moduleFileExtensions: ['ts', 'js', 'json'],
