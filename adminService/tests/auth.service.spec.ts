@@ -3,6 +3,7 @@ import { AuthService } from '../src/auth/auth.service'
 import { JwtService } from '@nestjs/jwt'
 import { UnauthorizedException } from '@nestjs/common'
 import { AdminService } from '../src/admin/admin.service'
+import { ConfigService } from '@nestjs/config'
 
 describe('AuthService', () => {
 
@@ -17,9 +18,15 @@ describe('AuthService', () => {
         sign: jest.fn()
     }
 
+    const mockConfigService = {
+        get: jest.fn().mockReturnValue('7d')
+    }
+
     beforeEach(async () => {
 
         jest.clearAllMocks()
+
+        mockConfigService.get.mockReturnValue('7d')
 
         const module: TestingModule = await Test.createTestingModule({
             providers: [
@@ -31,6 +38,10 @@ describe('AuthService', () => {
                 {
                     provide: JwtService,
                     useValue: mockJwtService
+                },
+                {
+                    provide: ConfigService,
+                    useValue: mockConfigService
                 }
             ]
         }).compile()

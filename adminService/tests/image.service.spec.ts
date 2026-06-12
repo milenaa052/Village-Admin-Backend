@@ -86,7 +86,7 @@ describe('ImageService', () => {
         }
 
         mockImageModel.findByPk.mockResolvedValue(image)
-        const result = await service.findOneById(1)
+        const result = await service.findById(1)
 
         expect(mockImageModel.findByPk).toHaveBeenCalledWith(1)
         expect(result).toEqual({
@@ -104,7 +104,7 @@ describe('ImageService', () => {
         mockImageModel.findByPk.mockResolvedValue(null)
 
         await expect(
-            service.findOneById(1)
+            service.findById(1)
         ).rejects.toBeInstanceOf(NotFoundException)
     })
 
