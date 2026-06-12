@@ -4,24 +4,35 @@ import { AdminService } from '../admin/admin.service'
 import { LoginDto } from './dto/login.dto'
 import { JwtPayload, AuthenticatedUser, UserType } from './interface/jwt-payload.interface'
 import { LoginResponse, ProfileResponse } from './interface/auth-response.interface'
+import { ConfigService } from '@nestjs/config'
+import { StringValue } from 'ms'
+import { logLoginFailed, logLoginSuccess } from '../middleware/login-logger.middleware'
 
 @Injectable()
 export class AuthService {
     constructor(
         private adminService: AdminService,
-        private jwtService: JwtService
+        private jwtService: JwtService,
+        private configService: ConfigService
     ) {}
 
     async validateUser(email: string, password: string): Promise<AuthenticatedUser> {
         const admin = await this.adminService.findByEmail(email)
         if (!admin) {
+            logLoginFailed(email)
             throw new UnauthorizedException('Credenciais inválidas')
         }
 
         const isPasswordValid = await admin.comparePassword(password)
         if (!isPasswordValid) {
+            logLoginFailed(password)
             throw new UnauthorizedException('Credenciais inválidas')
         }
+
+        logLoginSuccess(
+            admin.idAdmin,
+            admin.email
+        )
 
         return {
             idUser: admin.idAdmin,
@@ -43,8 +54,9 @@ export class AuthService {
             userType: user.userType
         }
 
+        const expiration = this.configService.get<string>('JWT_EXPIRATION')
         const signOptions: JwtSignOptions = {
-            expiresIn: '7d'
+            expiresIn: expiration as StringValue
         } 
 
         const token = this.jwtService.sign(payload, signOptions)
