@@ -5,6 +5,8 @@ import { CreateProductDto } from './dto/create-product.dto'
 import { UpdateProductDto } from './dto/update-product.dto'
 import { Op } from 'sequelize'
 import { Category } from '../categories/category.model'
+import { logProductCreated } from '../middleware/product-logger.middleware'
+import { logDelete } from '../middleware/delete-logger.middleware'
 
 @Injectable()
 export class ProductService {
@@ -27,6 +29,13 @@ export class ProductService {
       }
 
       const product = await this.productModel.create(productData)
+
+      logProductCreated(
+        product.idProduct,
+        product.name,
+        product.categoryId
+      )
+      
       return product
     } catch (error) {
       throw new BadRequestException('Erro ao criar produto')
@@ -86,6 +95,13 @@ export class ProductService {
       }
 
       await product.destroy()
+
+      logDelete(
+        product.idProduct,
+        product.name,
+        product.categoryId
+      )
+
       return { message: 'Produto deletado com sucesso' }
   }
 

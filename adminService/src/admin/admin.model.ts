@@ -61,7 +61,7 @@ export class Admin extends Model<Admin, AdminCreationAttributes> {
     @BeforeUpdate
     static async hashPassword(admin: Admin) {
         if (admin.changed('password')) {
-            admin.password = await bcrypt.hash(admin.password, 10)
+            admin.password = await bcrypt.hash(admin.password, Number(process.env.PASSWORD_SALT_ROUNDS))
         }
     }
 }

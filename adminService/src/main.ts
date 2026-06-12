@@ -1,33 +1,37 @@
-import { NestFactory } from '@nestjs/core';
-import { NestExpressApplication } from '@nestjs/platform-express';
-import { AppModule } from './app.module';
-import { ValidationPipe } from '@nestjs/common';
-import { join } from 'path';
-import { MulterExceptionFilter } from './images/filters/multer-exception.filter';
+import { NestFactory } from '@nestjs/core'
+import { NestExpressApplication } from '@nestjs/platform-express'
+import { AppModule } from './app.module'
+import { ValidationPipe } from '@nestjs/common'
+import { join } from 'path'
+import { MulterExceptionFilter } from './images/filters/multer-exception.filter'
+import { RequestLoggerMiddleware } from './middleware/request-logger.middleware'
 
 async function bootstrap() {
-  const app = await NestFactory.create<NestExpressApplication>(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule)
 
-  app.setGlobalPrefix('api');
+  app.setGlobalPrefix('api')
 
   app.enableCors({
     origin: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
     credentials: true,
-  });
+  })
 
-  const uploadDir = join(process.cwd(), 'uploads');
-  app.useStaticAssets(uploadDir, { prefix: '/uploads' });
+  const uploadDir = join(process.cwd(), 'uploads')
+  app.useStaticAssets(uploadDir, { prefix: '/uploads' })
 
   app.useGlobalPipes(
-  new ValidationPipe({
-    whitelist: true,
-    forbidNonWhitelisted: true,
-    transform: true,
-  }),
-);
-  app.useGlobalFilters(new MulterExceptionFilter());
-  await app.listen(3000, '0.0.0.0');
+    new ValidationPipe({
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      transform: true,
+    })
+  )
+
+  app.useGlobalFilters(new MulterExceptionFilter())
+  await app.listen(3000, '0.0.0.0')
+
+  app.use(RequestLoggerMiddleware)
 }
 
-bootstrap();
+bootstrap()

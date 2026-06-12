@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, BadRequestException, InternalServerErrorException } from '@nestjs/common'
+import { Injectable, NotFoundException, BadRequestException, InternalServerErrorException, Req } from '@nestjs/common'
 import { InjectModel } from '@nestjs/sequelize'
 import { extname } from 'path'
 import { existsSync } from 'fs'
@@ -9,6 +9,7 @@ import { UpdateImageDto } from './dto/update.image.dto'
 import { removeFileByUrl, imageUrlFromFilename } from './config/upload.utils'
 import { IMAGE_UPLOAD } from './image.constants'
 import { ImageResponseDto } from './dto/image-response.dto'
+import { logUpload } from '../middleware/upload-logger.middleware'
 
 @Injectable()
 export class ImageService {
@@ -25,7 +26,7 @@ export class ImageService {
         )
     }
 
-    async findOneById(id: number) {
+    async findById(id: number) {
         const image = await this.getImageOrFail(id)
         return this.formatResponse(image)
     }
@@ -47,6 +48,11 @@ export class ImageService {
                     file.filename,
                 )
             })
+
+            logUpload(
+                file.filename,
+                file.path
+            )
             
             return this.formatResponse(image)
         } catch (error) {
