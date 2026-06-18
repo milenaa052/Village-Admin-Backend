@@ -1,34 +1,34 @@
-import { Injectable, NotFoundException, BadRequestException, InternalServerErrorException, Req } from '@nestjs/common'
+import { Injectable, NotFoundException, BadRequestException, InternalServerErrorException } from '@nestjs/common'
 import { InjectModel } from '@nestjs/sequelize'
-import { extname } from 'path'
-import { existsSync } from 'fs'
-import FileType from 'file-type'
 import { Image } from './images.model'
 import { CreateImageDto } from './dto/create-image.dto'
 import { UpdateImageDto } from './dto/update.image.dto'
-import { removeFileByUrl, imageUrlFromFilename } from './config/upload.utils'
-import { IMAGE_UPLOAD } from './image.constants'
-import { ImageResponseDto } from './dto/image-response.dto'
 import { logUpload } from '../middleware/upload-logger.middleware'
+import { ImageValidatorService } from './image-validator.service'
+import { ImageMapperService } from './image-mapper.service'
+import { ImageFileService } from './image-file.service'
 
 @Injectable()
 export class ImageService {
     constructor(
         @InjectModel(Image)
-        private readonly imageModel: typeof Image
+        private readonly imageModel: typeof Image,
+        private readonly validator: ImageValidatorService,
+        private readonly mapper: ImageMapperService,
+        private readonly fileService: ImageFileService
     ) {}
 
     async findAll() {
         const images = await this.imageModel.findAll()
 
         return images.map((image) =>
-            this.formatResponse(image)
+            this.mapper.toResponse(image)
         )
     }
 
     async findById(id: number) {
         const image = await this.getImageOrFail(id)
-        return this.formatResponse(image)
+        return this.mapper.toResponse(image)
     }
 
     async create( createImageDto: CreateImageDto, file: Express.Multer.File) {
@@ -38,13 +38,13 @@ export class ImageService {
             )   
         }
 
-        await this.validateImage(file)
+        await this.validator.validate(file)
 
         try {
             const image = await this.imageModel.create({
                 altText: createImageDto.altText,
                 sectionId: createImageDto.sectionId,
-                imageUrl: imageUrlFromFilename(
+                imageUrl: this.fileService.generateUrl(
                     file.filename,
                 )
             })
@@ -54,9 +54,9 @@ export class ImageService {
                 file.path
             )
             
-            return this.formatResponse(image)
+            return this.mapper.toResponse(image)
         } catch (error) {
-            await removeFileByUrl(
+            await this.fileService.remove(
                 file.path
             )
 
@@ -80,8 +80,8 @@ export class ImageService {
                     throw new BadRequestException('Arquivo inválido')
                 }
 
-                await this.validateImage(file)
-                image.imageUrl = imageUrlFromFilename(file.filename)
+                await this.validator.validate(file)
+                image.imageUrl = this.fileService.generateUrl(file.filename)
             }
 
             await image.save()
@@ -92,13 +92,13 @@ export class ImageService {
                 previousImageUrl !==
                 image.imageUrl
             ) {
-                await removeFileByUrl(previousImageUrl)
+                await this.fileService.remove(previousImageUrl)
             }
 
-            return this.formatResponse(image)
+            return this.mapper.toResponse(image)
         } catch (error) {
             if (file?.path) {
-                await removeFileByUrl(file.path)
+                await this.fileService.remove(file.path)
             }
 
             if (
@@ -130,54 +130,5 @@ export class ImageService {
         }
 
         return image
-    }
-
-    private async validateImage(file: Express.Multer.File): Promise<void> {
-        try {
-            const fileType = await FileType.fromFile(file.path)
-
-            if (
-                !fileType || !IMAGE_UPLOAD.ALLOWED_EXTENSIONS.includes(
-                    fileType.ext
-                )
-            ) {
-                await removeFileByUrl(file.path)
-
-                throw new BadRequestException('Arquivo inválido. Apenas jpg, jpeg e png são permitidos')
-            }
-
-            const originalExtension = extname(file.originalname).replace('.', '').toLowerCase()
-
-            if (
-                originalExtension &&
-                originalExtension !==
-                fileType.ext
-            ) {
-                await removeFileByUrl(file.path)
-
-                throw new BadRequestException('Extensão do arquivo não confere com o conteúdo enviado')
-            }
-        } catch (error) {
-            if (error instanceof BadRequestException) {
-                throw error
-            }
-
-            if (file?.path && existsSync(file.path)) {
-                await removeFileByUrl(file.path)
-            }
-
-            throw new BadRequestException('Erro ao validar imagem enviada')
-        }
-    }
-
-    private formatResponse(image: Image): ImageResponseDto {
-        return {
-            idImage: image.idImage,
-            imageUrl: image.imageUrl,
-            altText: image.altText,
-            sectionId: image.sectionId,
-            createdAt: image.createdAt,
-            updatedAt: image.updatedAt
-        }
     }
 }

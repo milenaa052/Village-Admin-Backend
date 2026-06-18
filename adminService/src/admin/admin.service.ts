@@ -6,12 +6,16 @@ import { UpdateAdminDto } from './dto/update-admin.dto'
 import { PasswordValidator } from './password.validator'
 import { AdminResponseDto } from './interface/admin-response.dto'
 import { UserType } from './interface/admin.interface'
+import { AdminValidatorService } from './admin-validator.service'
+import { AdminMapperService } from './admin-mapper.service'
 
 @Injectable()
 export class AdminService {
     constructor(
         @InjectModel(Admin)
-        private readonly adminModel: typeof Admin
+        private readonly adminModel: typeof Admin,
+        private readonly validator: AdminValidatorService,
+        private readonly mapper: AdminMapperService
     ) {}
 
     async create(createAdminDto: CreateAdminDto): Promise<AdminResponseDto> {
@@ -23,16 +27,7 @@ export class AdminService {
             throw new ConflictException('Este email já está cadastrado')
         }
 
-        const passwordValidation = PasswordValidator.validatePasswordLevel(
-            createAdminDto.password
-        )
-
-        if (!passwordValidation.validate) {
-            throw new BadRequestException({
-                message: 'Senha muito fraca',
-                requirements: passwordValidation.requirements
-            })
-        }
+        this.validator.validatePassword(createAdminDto.password)
 
         try {
             const admin = await this.adminModel.create({
@@ -40,7 +35,7 @@ export class AdminService {
                 type: UserType.ADMIN
             })
 
-            return this.formatResponse(admin);
+            return this.mapper.toResponse(admin);
         } catch (error) {
             throw new BadRequestException('Erro ao criar administrador')
         }
@@ -94,7 +89,7 @@ export class AdminService {
 
         try {
             await admin.save()
-            return this.formatResponse(admin)
+            return this.mapper.toResponse(admin)
         } catch (error) {
             throw new InternalServerErrorException(
                 'Erro ao atualizar administrador'
@@ -129,17 +124,5 @@ export class AdminService {
         }
 
         admin.password = updateAdminDto.newPassword;
-    }
-
-    private formatResponse(admin: Admin): AdminResponseDto {
-        return {
-            idAdmin: admin.idAdmin,
-            name: admin.name,
-            email: admin.email,
-            phone: admin.phone,
-            type: admin.type,
-            createdAt: admin.createdAt,
-            updatedAt: admin.updatedAt
-        }
     }
 }
