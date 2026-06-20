@@ -35,7 +35,7 @@ export class AdminService {
                 type: UserType.ADMIN
             })
 
-            return this.mapper.toResponse(admin);
+            return this.mapper.toResponse(admin)
         } catch (error) {
             throw new BadRequestException('Erro ao criar administrador')
         }
@@ -49,7 +49,7 @@ export class AdminService {
         const admin = await this.adminModel.findByPk(id)
 
         if (!admin) throw new NotFoundException('Administrador não encontrado')
-        return admin;
+        return admin
     }
 
     async findByEmail(email: string): Promise<Admin | null> {
@@ -68,7 +68,7 @@ export class AdminService {
             )
         }
 
-        const admin = await this.adminModel.findByPk(id);
+        const admin = await this.adminModel.findByPk(id)
         if (!admin) {
             throw new NotFoundException('Administrador não encontrado!')
         }
@@ -123,6 +123,6 @@ export class AdminService {
             })
         }
 
-        admin.password = updateAdminDto.newPassword;
+        admin.password = updateAdminDto.newPassword
     }
 }
