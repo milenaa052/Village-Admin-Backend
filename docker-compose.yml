@@ -91,6 +91,15 @@ services:
       - ./docker/grafana/provisioning/datasources/datasources.yml:/etc/grafana/provisioning/datasources/datasources.yml:ro
     networks:
       - aldeiaviva_network
+  
+  redis-admin:
+    image: redis:7
+    container_name: redis-admin
+    restart: always
+    ports:
+      - "6379:6379"
+    networks:
+      - aldeiaviva_network
 
   nginx-admin:
     image: nginx:alpine

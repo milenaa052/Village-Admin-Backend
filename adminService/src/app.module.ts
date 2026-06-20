@@ -12,6 +12,7 @@ import { CardModule } from './cards/card.module'
 import { ButtonModule } from './buttons/button.module'
 import { StatsModule } from './stats/stats.module'
 import { ImageModule } from './images/image.module'
+import { RedisModule } from './redis/redis.module'
 
 @Module({
     imports: [
@@ -38,7 +39,8 @@ import { ImageModule } from './images/image.module'
         CardModule,
         ButtonModule,
         StatsModule,
-        ImageModule
+        ImageModule,
+        RedisModule
     ],
     controllers: [AppController],
     providers: [AppService]
