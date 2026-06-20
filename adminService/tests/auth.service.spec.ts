@@ -4,6 +4,7 @@ import { JwtService } from '@nestjs/jwt'
 import { UnauthorizedException } from '@nestjs/common'
 import { AdminService } from '../src/admin/admin.service'
 import { ConfigService } from '@nestjs/config'
+import { AuthValidatorService } from '../src/auth/auth-validator.service'
 
 describe('AuthService', () => {
 
@@ -22,15 +23,20 @@ describe('AuthService', () => {
         get: jest.fn().mockReturnValue('7d')
     }
 
+    const mockAuthValidatorService = {
+        validateUser: jest.fn()
+    }
+
     beforeEach(async () => {
-
         jest.clearAllMocks()
-
-        mockConfigService.get.mockReturnValue('7d')
 
         const module: TestingModule = await Test.createTestingModule({
             providers: [
                 AuthService,
+                {
+                    provide: AuthValidatorService,
+                    useValue: mockAuthValidatorService
+                },
                 {
                     provide: AdminService,
                     useValue: mockAdminService
@@ -49,100 +55,56 @@ describe('AuthService', () => {
         service = module.get<AuthService>(AuthService)
     })
 
-    describe('validateUser', () => {
+    describe('login', () => {
+        it('deve realizar login com sucesso', async () => {
 
-        it('deve lançar UnauthorizedException se o usuário não existir', async () => {
-            mockAdminService.findByEmail.mockResolvedValue(null)
-
-            await expect(
-                service.validateUser('teste@email.com', '123')
-            ).rejects.toBeInstanceOf(UnauthorizedException)
-        })
-
-        it('deve lançar UnauthorizedException se a senha estiver incorreta', async () => {
-
-            const mockAdmin = {
-                comparePassword: jest.fn().mockResolvedValue(false)
-            }
-
-            mockAdminService.findByEmail.mockResolvedValue(mockAdmin)
-
-            await expect(
-                service.validateUser('teste@email.com', '123')
-            ).rejects.toBeInstanceOf(UnauthorizedException)
-            expect(mockAdmin.comparePassword).toHaveBeenCalledWith('123')
-        })
-
-        it('deve validar usuário com sucesso', async () => {
-
-            const mockAdmin = {
-                idAdmin: 1,
-                name: 'Administrador',
-                email: 'admin@email.com',
-                comparePassword: jest.fn().mockResolvedValue(true)
-            }
-
-            mockAdminService.findByEmail.mockResolvedValue(mockAdmin)
-            const result = await service.validateUser(
-                'admin@email.com',
-                '123456'
-            )
-
-            expect(result).toEqual({
+            const user = {
                 idUser: 1,
                 name: 'Administrador',
                 email: 'admin@email.com',
                 userType: 'ADMIN'
-            })
-        })
-    })
-
-    describe('login', () => {
-
-        it('deve realizar login com sucesso', async () => {
-
-            const mockAdmin = {
-                idAdmin: 1,
-                name: 'Administrador',
-                email: 'admin@email.com',
-                comparePassword: jest.fn().mockResolvedValue(true)
             }
-            const mockToken = 'jwt-token-fake'
 
-            mockAdminService.findByEmail.mockResolvedValue(mockAdmin)
-            mockJwtService.sign.mockReturnValue(mockToken)
+            mockAuthValidatorService.validateUser
+                .mockResolvedValue(user)
+
+            mockJwtService.sign
+                .mockReturnValue('jwt-token-fake')
+
             const result = await service.login({
                 email: 'admin@email.com',
                 password: '123456'
             })
 
-            expect(mockAdminService.findByEmail)
-                .toHaveBeenCalledWith('admin@email.com')
-
-            expect(mockAdmin.comparePassword)
-
-                .toHaveBeenCalledWith('123456')
-            expect(mockJwtService.sign).toHaveBeenCalledWith(
-                {
-                    idUser: 1,
-                    name: 'Administrador',
-                    email: 'admin@email.com',
-                    userType: 'ADMIN'
-                },
-                {
-                    expiresIn: '7d'
-                }
+            expect(
+                mockAuthValidatorService.validateUser
+            ).toHaveBeenCalledWith(
+                'admin@email.com',
+                '123456'
             )
+
+            expect(mockConfigService.get)
+                .toHaveBeenCalledWith(
+                    'JWT_EXPIRATION'
+                )
+
+            expect(mockJwtService.sign)
+                .toHaveBeenCalledWith(
+                    {
+                        idUser: 1,
+                        name: 'Administrador',
+                        email: 'admin@email.com',
+                        userType: 'ADMIN'
+                    },
+                    {
+                        expiresIn: '7d'
+                    }
+                )
 
             expect(result).toEqual({
                 message: 'Login realizado com sucesso',
-                token: mockToken,
-                user: {
-                    idUser: 1,
-                    name: 'Administrador',
-                    email: 'admin@email.com',
-                    userType: 'ADMIN'
-                }
+                token: 'jwt-token-fake',
+                user
             })
         })
     })

@@ -5,6 +5,8 @@ import { AdminService } from '../src/admin/admin.service'
 import { Admin } from '../src/admin/admin.model'
 import { PasswordValidator } from '../src/admin/password.validator'
 import { UserType } from '../src/admin/interface/admin.interface'
+import { AdminValidatorService } from '../src/admin/admin-validator.service'
+import { AdminMapperService } from '../src/admin/admin-mapper.service'
 
 describe('AdminService', () => {
 
@@ -17,6 +19,14 @@ describe('AdminService', () => {
         findOne: jest.fn()
     }
 
+    const mockValidatorService = {
+        validatePassword: jest.fn()
+    }
+
+    const mockMapperService = {
+        toResponse: jest.fn()
+    }
+
     beforeEach(async () => {
 
         jest.clearAllMocks()
@@ -27,6 +37,18 @@ describe('AdminService', () => {
                 {
                     provide: getModelToken(Admin),
                     useValue: mockAdminModel
+                },
+                {
+                    provide: getModelToken(Admin),
+                    useValue: mockAdminModel
+                },
+                {
+                    provide: AdminValidatorService,
+                    useValue: mockValidatorService
+                },
+                {
+                    provide: AdminMapperService,
+                    useValue: mockMapperService
                 }
             ]
         }).compile()
