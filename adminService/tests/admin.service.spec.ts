@@ -31,13 +31,21 @@ describe('AdminService', () => {
 
         jest.clearAllMocks()
 
+        mockMapperService.toResponse.mockImplementation(
+            (admin) => ({
+                idAdmin: admin.idAdmin,
+                name: admin.name,
+                email: admin.email,
+                phone: admin.phone,
+                type: admin.type,
+                createdAt: admin.createdAt,
+                updatedAt: admin.updatedAt
+            })
+        )
+
         const module: TestingModule = await Test.createTestingModule({
             providers: [
                 AdminService,
-                {
-                    provide: getModelToken(Admin),
-                    useValue: mockAdminModel
-                },
                 {
                     provide: getModelToken(Admin),
                     useValue: mockAdminModel
@@ -121,21 +129,15 @@ describe('AdminService', () => {
 
     it('deve lançar BadRequestException para senha fraca', async () => {
 
-        jest.spyOn(service, 'findByEmail').mockResolvedValue(null)
-        jest.spyOn(
-            PasswordValidator,
-            'validatePasswordLevel'
-        ).mockReturnValue({
-            validate: false,
-            message: 'Senha fraca',
-            requirements: {
-                hasUppercase: false,
-                hasLowercase: true,
-                hasNumber: false,
-                hasSpecialChar: false,
-                hasMinLength: false
-            }
-        })
+        jest.spyOn(service, 'findByEmail')
+            .mockResolvedValue(null)
+
+        mockValidatorService.validatePassword
+            .mockImplementation(() => {
+                throw new BadRequestException(
+                    'Senha muito fraca'
+                )
+            })
 
         await expect(
             service.create({
@@ -144,7 +146,9 @@ describe('AdminService', () => {
                 password: '123',
                 phone: '41999999999'
             })
-        ).rejects.toBeInstanceOf(BadRequestException)
+        ).rejects.toBeInstanceOf(
+            BadRequestException
+        )
     })
 
     it('deve retornar todos os administradores', async () => {
@@ -370,23 +374,14 @@ describe('AdminService', () => {
 
     it('deve lançar BadRequestException ao falhar criação do administrador', async () => {
 
-        jest.spyOn(service, 'findByEmail').mockResolvedValue(null)
-        jest.spyOn(
-            PasswordValidator,
-            'validatePasswordLevel'
-        ).mockReturnValue({
-            validate: true,
-            message: 'Senha válida',
-            requirements: {
-                hasUppercase: true,
-                hasLowercase: true,
-                hasNumber: true,
-                hasSpecialChar: true,
-                hasMinLength: true
-            }
-        })
+        jest.spyOn(service, 'findByEmail')
+            .mockResolvedValue(null)
 
-        mockAdminModel.create.mockRejectedValue(new Error())
+        mockValidatorService.validatePassword
+            .mockImplementation(() => undefined)
+
+        mockAdminModel.create
+            .mockRejectedValue(new Error('Erro banco'))
 
         await expect(
             service.create({
@@ -395,7 +390,14 @@ describe('AdminService', () => {
                 password: 'Senha123@',
                 phone: '41999999999'
             })
-        ).rejects.toBeInstanceOf(BadRequestException)
+        ).rejects.toThrow(
+            new BadRequestException(
+                'Erro ao criar administrador'
+            )
+        )
+
+        expect(mockAdminModel.create)
+            .toHaveBeenCalled()
     })
 
     it('deve lançar BadRequestException quando faltar senha atual ou nova senha', async () => {
