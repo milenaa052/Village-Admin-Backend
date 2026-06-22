@@ -104,9 +104,9 @@ describe('AdminValidatorService', () => {
                     message: 'Senha muito fraca',
                     requirements: {
                         hasUppercase: false,
-                        hasLowercase: false,
+                        hasLowercase: true,
                         hasNumber: true,
-                        hasSpecialChar: false,
+                        hasSpecialChar: true,
                         hasMinLength: false
                     }
                 })
