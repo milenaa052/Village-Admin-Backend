@@ -23,9 +23,9 @@ export class Product extends Model<Product, ProductCreationAttributes> {
     })
     declare description: string
     
-    @Column({ 
-        type: DataType.DECIMAL,
-        allowNull: false 
+    @Column({
+        type: DataType.DECIMAL(10, 2),
+        allowNull: false
     })
     declare price: number
 

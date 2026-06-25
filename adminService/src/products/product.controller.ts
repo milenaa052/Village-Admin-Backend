@@ -5,11 +5,11 @@ import { UpdateProductDto } from './dto/update-product.dto'
 import { AuthGuard } from '@nestjs/passport'
 import { AuthRequest } from '../auth/interface/auth-request.interface'
 
-@UseGuards(AuthGuard('jwt'))
 @Controller('product')
 export class ProductController {
     constructor(private readonly productService: ProductService) {}
 
+    @UseGuards(AuthGuard('jwt'))
     @Post()
     async create(@Body() createProductDto: CreateProductDto) {
         return this.productService.create(createProductDto)
@@ -30,6 +30,7 @@ export class ProductController {
         return this.productService.findByProduct(name)
     }
 
+    @UseGuards(AuthGuard('jwt'))
     @Put(':id')
     async update(
         @Param('id', ParseIntPipe) id: number,
@@ -39,6 +40,7 @@ export class ProductController {
         return this.productService.update(id, updateProductDto)
     }
 
+    @UseGuards(AuthGuard('jwt'))
     @Delete(':id')
     async deleteById(@Param('id', ParseIntPipe) id: number) {
         return this.productService.deleteById(id)

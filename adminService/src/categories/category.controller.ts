@@ -5,11 +5,11 @@ import { UpdateCategoryDto } from './dto/update-category.dto'
 import { AuthGuard } from '@nestjs/passport'
 import { AuthRequest } from '../auth/interface/auth-request.interface'
 
-@UseGuards(AuthGuard('jwt'))
 @Controller('category')
 export class CategoryController {
     constructor(private readonly categoryService: CategoryService) {}
 
+    @UseGuards(AuthGuard('jwt'))
     @Post()
     async create(@Body() createCategoryDto: CreateCategoryDto) {
         return this.categoryService.create(createCategoryDto)
@@ -25,6 +25,7 @@ export class CategoryController {
         return this.categoryService.findById(id)
     }
 
+    @UseGuards(AuthGuard('jwt'))
     @Put(':id')
     async update(
         @Param('id', ParseIntPipe) id: number,
@@ -34,6 +35,7 @@ export class CategoryController {
         return this.categoryService.update(id, updateCategoryDto)
     }
 
+    @UseGuards(AuthGuard('jwt'))
     @Delete(':id')
     async deleteById(@Param('id', ParseIntPipe) id: number) {
         return this.categoryService.deleteById(id)
