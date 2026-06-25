@@ -3,14 +3,21 @@ import { BadRequestException, NotFoundException } from '@nestjs/common'
 import { getModelToken } from '@nestjs/sequelize'
 import { ContentService } from '../src/contents/content.service'
 import { Content } from '../src/contents/content.model'
+import { SectionValidatorService } from '../src/sections/rules/section-validator.service'
+import { ContentType } from '../src/contents/interface/content.interface'
 
 describe('ContentService', () => {
 
     let service: ContentService
 
     const mockContentModel = {
-        findAll: jest.fn(),
+        create:   jest.fn(),
+        findAll:  jest.fn(),
         findByPk: jest.fn()
+    }
+
+    const mockSectionValidator = {
+        validateContentCreate: jest.fn()
     }
 
     beforeEach(async () => {
@@ -23,6 +30,10 @@ describe('ContentService', () => {
                 {
                     provide: getModelToken(Content),
                     useValue: mockContentModel
+                },
+                {
+                    provide: SectionValidatorService,
+                    useValue: mockSectionValidator
                 }
             ]
         }).compile()
@@ -30,123 +41,186 @@ describe('ContentService', () => {
         service = module.get<ContentService>(ContentService)
     })
 
-    it('deve retornar todos os conteúdos', async () => {
+    // ─── create ──────────────────────────────────────────────────────────────
 
-        const contents = [
-            {
+    describe('create', () => {
+
+        it('deve criar conteúdo com sucesso', async () => {
+
+            const mockContent = {
                 idContent: 1,
-                title: 'Conteúdo 1'
-            },
-            {
-                idContent: 2,
-                title: 'Conteúdo 2'
+                type: 'text',
+                content: 'Texto',
+                sectionId: 1
             }
-        ]
 
-        mockContentModel.findAll.mockResolvedValue(contents)
-        const result = await service.findAll()
+            mockSectionValidator.validateContentCreate.mockResolvedValue(undefined)
+            mockContentModel.create.mockResolvedValue(mockContent)
 
-        expect(mockContentModel.findAll).toHaveBeenCalled()
-        expect(result).toEqual(contents)
-    })
+            const result = await service.create({
+                type: ContentType.P1,
+                content: 'Texto',
+                sectionId: 1
+            })
 
-    it('deve retornar conteúdo pelo id', async () => {
+            expect(mockSectionValidator.validateContentCreate)
+                .toHaveBeenCalledWith(1)
 
-        const content = {
-            idContent: 1,
-            title: 'Conteúdo'
-        }
+            expect(mockContentModel.create).toHaveBeenCalledWith({
+                type: 'text',
+                content: 'Texto',
+                sectionId: 1
+            })
 
-        mockContentModel.findByPk.mockResolvedValue(content)
-        const result = await service.findById(1)
+            expect(result).toEqual(mockContent)
+        })
 
-        expect(mockContentModel.findByPk).toHaveBeenCalledWith(1)
-        expect(result).toEqual(content)
-    })
+        it('deve lançar exceção quando validação da seção falhar', async () => {
 
-    it('deve lançar NotFoundException ao buscar conteúdo inexistente', async () => {
+            mockSectionValidator.validateContentCreate
+                .mockRejectedValue(new BadRequestException('Seção não permite conteúdos'))
 
-        mockContentModel.findByPk.mockResolvedValue(null)
+            await expect(
+                service.create({
+                    type: ContentType.P1,
+                    content: 'Texto',
+                    sectionId: 1
+                })
+            ).rejects.toBeInstanceOf(BadRequestException)
 
-        await expect(
-            service.findById(1)
-        ).rejects.toBeInstanceOf(NotFoundException)
-    })
+            expect(mockContentModel.create).not.toHaveBeenCalled()
+        })
 
-    it('deve atualizar conteúdo com sucesso', async () => {
+        it('deve lançar BadRequestException ao falhar criação no banco', async () => {
 
-        const mockContent = {
-            idContent: 1,
-            title: 'Conteúdo',
-            save: jest.fn().mockResolvedValue(true)
-        }
+            mockSectionValidator.validateContentCreate.mockResolvedValue(undefined)
+            mockContentModel.create.mockRejectedValue(new Error())
 
-        mockContentModel.findByPk.mockResolvedValue(mockContent)
-        const result = await service.update(1,{} as any)
-
-        expect(mockContentModel.findByPk)
-            .toHaveBeenCalledWith(1)
-
-        expect(mockContent.save)
-            .toHaveBeenCalled()
-
-        expect(result).toEqual(mockContent)
-    })
-
-    it('deve lançar NotFoundException ao atualizar conteúdo inexistente', async () => {
-
-        mockContentModel.findByPk.mockResolvedValue(null)
-
-        await expect(
-            service.update(1, {} as any)
-        ).rejects.toBeInstanceOf(NotFoundException)
-    })
-
-    it('deve lançar BadRequestException ao falhar atualização', async () => {
-
-        const mockContent = {
-            idContent: 1,
-            title: 'Conteúdo',
-            save: jest.fn().mockRejectedValue(new Error())
-        }
-
-        mockContentModel.findByPk.mockResolvedValue(mockContent)
-
-        await expect(
-            service.update(
-                1,
-                {} as any
-            )
-        ).rejects.toBeInstanceOf(BadRequestException)
-    })
-
-    it('deve deletar conteúdo com sucesso', async () => {
-
-        const mockContent = {
-            idContent: 1,
-            destroy: jest.fn().mockResolvedValue(true)
-        }
-
-        mockContentModel.findByPk.mockResolvedValue(mockContent)
-        const result = await service.deleteById(1)
-
-        expect(mockContentModel.findByPk)
-            .toHaveBeenCalledWith(1)
-
-        expect(mockContent.destroy)
-            .toHaveBeenCalled()
-
-        expect(result).toEqual({
-            message: 'Conteúdo deletado com sucesso'
+            await expect(
+                service.create({
+                    type: ContentType.P1,
+                    content: 'Texto',
+                    sectionId: 1
+                })
+            ).rejects.toBeInstanceOf(BadRequestException)
         })
     })
 
-    it('deve lançar NotFoundException ao deletar conteúdo inexistente', async () => {
+    // ─── findAll ─────────────────────────────────────────────────────────────
 
-        mockContentModel.findByPk.mockResolvedValue(null)
+    describe('findAll', () => {
 
-        await expect(
-            service.deleteById(1)
-        ).rejects.toBeInstanceOf(NotFoundException)
+        it('deve retornar todos os conteúdos', async () => {
+
+            const contents = [
+                { idContent: 1, title: 'Conteúdo 1' },
+                { idContent: 2, title: 'Conteúdo 2' }
+            ]
+
+            mockContentModel.findAll.mockResolvedValue(contents)
+            const result = await service.findAll()
+
+            expect(mockContentModel.findAll).toHaveBeenCalled()
+            expect(result).toEqual(contents)
+        })
+    })
+
+    // ─── findById ────────────────────────────────────────────────────────────
+
+    describe('findById', () => {
+
+        it('deve retornar conteúdo pelo id', async () => {
+
+            const content = { idContent: 1, title: 'Conteúdo' }
+
+            mockContentModel.findByPk.mockResolvedValue(content)
+            const result = await service.findById(1)
+
+            expect(mockContentModel.findByPk).toHaveBeenCalledWith(1)
+            expect(result).toEqual(content)
+        })
+
+        it('deve lançar NotFoundException ao buscar conteúdo inexistente', async () => {
+
+            mockContentModel.findByPk.mockResolvedValue(null)
+
+            await expect(
+                service.findById(1)
+            ).rejects.toBeInstanceOf(NotFoundException)
+        })
+    })
+
+    // ─── update ──────────────────────────────────────────────────────────────
+
+    describe('update', () => {
+
+        it('deve atualizar conteúdo com sucesso', async () => {
+
+            const mockContent = {
+                idContent: 1,
+                title: 'Conteúdo',
+                save: jest.fn().mockResolvedValue(true)
+            }
+
+            mockContentModel.findByPk.mockResolvedValue(mockContent)
+            const result = await service.update(1, {} as any)
+
+            expect(mockContentModel.findByPk).toHaveBeenCalledWith(1)
+            expect(mockContent.save).toHaveBeenCalled()
+            expect(result).toEqual(mockContent)
+        })
+
+        it('deve lançar NotFoundException ao atualizar conteúdo inexistente', async () => {
+
+            mockContentModel.findByPk.mockResolvedValue(null)
+
+            await expect(
+                service.update(1, {} as any)
+            ).rejects.toBeInstanceOf(NotFoundException)
+        })
+
+        it('deve lançar BadRequestException ao falhar atualização', async () => {
+
+            const mockContent = {
+                idContent: 1,
+                title: 'Conteúdo',
+                save: jest.fn().mockRejectedValue(new Error())
+            }
+
+            mockContentModel.findByPk.mockResolvedValue(mockContent)
+
+            await expect(
+                service.update(1, {} as any)
+            ).rejects.toBeInstanceOf(BadRequestException)
+        })
+    })
+
+    // ─── deleteById ──────────────────────────────────────────────────────────
+
+    describe('deleteById', () => {
+
+        it('deve deletar conteúdo com sucesso', async () => {
+
+            const mockContent = {
+                idContent: 1,
+                destroy: jest.fn().mockResolvedValue(true)
+            }
+
+            mockContentModel.findByPk.mockResolvedValue(mockContent)
+            const result = await service.deleteById(1)
+
+            expect(mockContentModel.findByPk).toHaveBeenCalledWith(1)
+            expect(mockContent.destroy).toHaveBeenCalled()
+            expect(result).toEqual({ message: 'Conteúdo deletado com sucesso' })
+        })
+
+        it('deve lançar NotFoundException ao deletar conteúdo inexistente', async () => {
+
+            mockContentModel.findByPk.mockResolvedValue(null)
+
+            await expect(
+                service.deleteById(1)
+            ).rejects.toBeInstanceOf(NotFoundException)
+        })
     })
 })

@@ -1,3 +1,7 @@
+jest.mock('../src/utils/smtp', () => ({
+    sendEmail: jest.fn()
+}))
+
 import { Test, TestingModule } from '@nestjs/testing'
 import { UnauthorizedException } from '@nestjs/common'
 import { AuthValidatorService } from '../src/auth/auth-validator.service'
@@ -41,9 +45,7 @@ describe('AuthValidatorService', () => {
                 'teste@email.com',
                 '123'
             )
-        ).rejects.toThrow(
-            UnauthorizedException
-        )
+        ).rejects.toThrow(UnauthorizedException)
     })
 
     it('deve lançar erro quando senha for inválida', async () => {
@@ -61,9 +63,7 @@ describe('AuthValidatorService', () => {
                 'teste@email.com',
                 '123'
             )
-        ).rejects.toThrow(
-            UnauthorizedException
-        )
+        ).rejects.toThrow(UnauthorizedException)
     })
 
     it('deve validar usuário com sucesso', async () => {

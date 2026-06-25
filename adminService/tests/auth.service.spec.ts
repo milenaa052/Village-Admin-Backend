@@ -1,3 +1,7 @@
+jest.mock('../src/utils/smtp', () => ({
+    sendEmail: jest.fn()
+}))
+
 import { Test, TestingModule } from '@nestjs/testing'
 import { AuthService } from '../src/auth/auth.service'
 import { JwtService } from '@nestjs/jwt'

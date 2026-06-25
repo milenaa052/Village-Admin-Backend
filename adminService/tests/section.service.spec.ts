@@ -4,6 +4,7 @@ import { getModelToken } from '@nestjs/sequelize'
 import { SectionService } from '../src/sections/section.service'
 import { Section } from '../src/sections/section.model'
 import { SectionName } from '../src/sections/interface/section.interface'
+import { SectionValidatorService } from '../src/sections/rules/section-validator.service'
 
 describe('SectionService', () => {
 
@@ -13,6 +14,11 @@ describe('SectionService', () => {
         create: jest.fn(),
         findAll: jest.fn(),
         findByPk: jest.fn()
+    }
+
+    const mockSectionValidator = {
+        validateTitleEdit: jest.fn(),
+        validateSubtitleEdit: jest.fn()
     }
 
     beforeEach(async () => {
@@ -25,6 +31,10 @@ describe('SectionService', () => {
                 {
                     provide: getModelToken(Section),
                     useValue: mockSectionModel
+                },
+                {
+                    provide: SectionValidatorService,
+                    useValue: mockSectionValidator
                 }
             ]
         }).compile()
@@ -36,20 +46,20 @@ describe('SectionService', () => {
 
         const mockSection = {
             idSection: 1,
-            name: SectionName.homePage,
+            name: SectionName.home,
             title: 'Título',
             subtitle: 'Subtítulo'
         }
 
         mockSectionModel.create.mockResolvedValue(mockSection)
         const result = await service.create({
-            name: SectionName.homePage,
+            name: SectionName.home,
             title: 'Título',
             subtitle: 'Subtítulo'
         })
 
         expect(mockSectionModel.create).toHaveBeenCalledWith({
-            name: SectionName.homePage,
+            name: SectionName.home,
             title: 'Título',
             subtitle: 'Subtítulo'
         })
@@ -62,7 +72,7 @@ describe('SectionService', () => {
 
         await expect(
             service.create({
-                name: SectionName.homePage,
+                name: SectionName.home,
                 title: 'Título',
                 subtitle: 'Subtítulo'
             })
@@ -74,7 +84,7 @@ describe('SectionService', () => {
         const sections = [
             {
                 idSection: 1,
-                name: SectionName.homePage
+                name: SectionName.home
             },
             {
                 idSection: 2,
@@ -93,7 +103,7 @@ describe('SectionService', () => {
 
         const section = {
             idSection: 1,
-            name: SectionName.homePage
+            name: SectionName.home
         }
 
         mockSectionModel.findByPk.mockResolvedValue(section)
@@ -116,14 +126,14 @@ describe('SectionService', () => {
 
         const mockSection = {
             idSection: 1,
-            name: SectionName.homePage,
+            name: SectionName.home,
             title: 'Título',
             subtitle: 'Subtítulo',
             save: jest.fn().mockResolvedValue(true)
         }
 
         mockSectionModel.findByPk.mockResolvedValue(mockSection)
-        const result = await service.update(1,{} as any)
+        const result = await service.update(1, {} as any)
 
         expect(mockSectionModel.findByPk)
             .toHaveBeenCalledWith(1)
@@ -147,7 +157,7 @@ describe('SectionService', () => {
 
         const mockSection = {
             idSection: 1,
-            name: SectionName.homePage,
+            name: SectionName.home,
             title: 'Título',
             subtitle: 'Subtítulo',
             save: jest.fn().mockRejectedValue(new Error())
