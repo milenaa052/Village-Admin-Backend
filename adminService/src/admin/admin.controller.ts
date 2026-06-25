@@ -1,7 +1,9 @@
 import { Controller, Post, Get, Put, Req, Param, Body, UseGuards, ParseIntPipe } from '@nestjs/common'
 import { AdminService } from './admin.service'
+import { AdminInviteService } from './admin-invite.service'
 import { CreateAdminDto } from './dto/create-admin.dto'
 import { UpdateAdminDto } from './dto/update-admin.dto'
+import { InviteAdminDto } from './dto/invite-admin.dto'
 import { AuthGuard } from '@nestjs/passport'
 import { AuthRequest } from '../auth/interface/auth-request.interface'
 import { AdminRecoverPassService } from './admin-recover-pass.service'
@@ -11,12 +13,29 @@ import { ResetPasswordDto } from './dto/reset-pass.dto'
 export class AdminController {
     constructor(
         private readonly adminService: AdminService,
+        private readonly adminInviteService: AdminInviteService,
         private readonly adminRecoverPassService: AdminRecoverPassService
     ) {}
 
     @Post()
     async create(@Body() createAdminDto: CreateAdminDto) {
         return this.adminService.create(createAdminDto)
+    }
+
+    @UseGuards(AuthGuard('jwt'))
+    @Post('invite')
+    async invite(
+        @Body() inviteAdminDto: InviteAdminDto,
+        @Req() req: AuthRequest
+    ) {
+        await this.adminInviteService.sendInvite(req.user.name, inviteAdminDto.email)
+        return { message: 'Convite enviado com sucesso' }
+    }
+
+    @Post('invite/validate')
+    async validateInviteToken(@Body('token') token: string) {
+        const email = await this.adminInviteService.validateToken(token)
+        return { valid: true, email }
     }
 
     @UseGuards(AuthGuard('jwt'))
@@ -45,18 +64,12 @@ export class AdminController {
     @Post('recover-password')
     async recoverPassword(@Body('email') email: string) {
         await this.adminRecoverPassService.recoverPassword(email)
-
-        return {
-            message: 'Código de recuperação enviado para o e-mail informado'
-        }
+        return { message: 'Código de recuperação enviado para o e-mail informado' }
     }
 
     @Post('reset-password')
     async resetPassword(@Body() resetPasswordDto: ResetPasswordDto) {
         await this.adminRecoverPassService.resetPassword(resetPasswordDto)
-
-        return {
-            message: 'Senha redefinida com sucesso'
-        }
+        return { message: 'Senha redefinida com sucesso' }
     }
 }
