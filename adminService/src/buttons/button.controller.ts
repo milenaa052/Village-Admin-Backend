@@ -1,13 +1,18 @@
-import { Controller, Get, Put, Delete, Req, Param, Body, UseGuards, ParseIntPipe } from '@nestjs/common'
+import { Controller, Post, Get, Put, Delete, Param, Body, UseGuards, ParseIntPipe } from '@nestjs/common'
 import { ButtonService } from './button.service'
 import { ButtonDto } from './dto/buttons.dto'
+import { CreateButtonDto } from './dto/create-button.dto'
 import { AuthGuard } from '@nestjs/passport'
-import { AuthRequest } from '../auth/interface/auth-request.interface'
 
 @UseGuards(AuthGuard('jwt'))
 @Controller('button')
 export class ButtonController {
     constructor(private readonly buttonService: ButtonService) {}
+
+    @Post()
+    async create(@Body() createButtonDto: CreateButtonDto) {
+        return this.buttonService.create(createButtonDto)
+    }
 
     @Get()
     async findAll() {
@@ -23,7 +28,6 @@ export class ButtonController {
     async update(
         @Param('id', ParseIntPipe) id: number,
         @Body() updateButtonDto: ButtonDto,
-        @Req() req: AuthRequest,
     ) {
         return this.buttonService.update(id, updateButtonDto)
     }

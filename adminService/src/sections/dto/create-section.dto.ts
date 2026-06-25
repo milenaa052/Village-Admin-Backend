@@ -1,22 +1,16 @@
-import { IsString, IsNotEmpty } from 'class-validator'
+import { IsEnum, IsNotEmpty, IsOptional, IsString } from 'class-validator'
 import { SectionName } from '../interface/section.interface'
+import { getRules } from '../rules/section.rules'
 
 export class CreateSectionDto {
-    @IsString()
-    @IsNotEmpty({ 
-        message: 'Nome da seção é obrigatório' 
-    })
+    @IsEnum(SectionName, { message: 'Nome de seção inválido' })
     name!: SectionName
 
     @IsString()
-    @IsNotEmpty({ 
-        message: 'Título é obrigatório' 
-    })
-    title!: string
+    @IsOptional()
+    title?: string
 
     @IsString()
-    @IsNotEmpty({ 
-        message: 'Subtítulo é obrigatório' 
-    })
-    subtitle!: string
+    @IsOptional()
+    subtitle?: string
 }

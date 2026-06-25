@@ -2,12 +2,25 @@ import { Injectable, NotFoundException, BadRequestException } from '@nestjs/comm
 import { InjectModel } from '@nestjs/sequelize'
 import { Button } from './buttons.model'
 import { ButtonDto } from './dto/buttons.dto'
+import { CreateButtonDto } from './dto/create-button.dto'
 
 @Injectable()
 export class ButtonService {
     constructor(
         @InjectModel(Button) private readonly buttonModel: typeof Button
     ) {}
+
+    async create(dto: CreateButtonDto): Promise<Button> {
+        try {
+            return await this.buttonModel.create({
+                label: dto.label,
+                link: dto.link,
+                sectionId: dto.sectionId
+            })
+        } catch (error) {
+            throw new BadRequestException('Erro ao criar botão')
+        }
+    }
 
     async findAll() {
         return await this.buttonModel.findAll()

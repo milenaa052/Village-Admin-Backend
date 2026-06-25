@@ -4,10 +4,13 @@ import { Card } from './card.model'
 import { CardService } from './card.service'
 import { CardController } from './card.controller'
 import { AuthModule } from '../auth/auth.module'
+import { SectionModule } from '../sections/section.module'
 
 @Module({
-  imports: [SequelizeModule.forFeature([Card]),
-    forwardRef(() => AuthModule)
+  imports: [
+    SequelizeModule.forFeature([Card]),
+    forwardRef(() => AuthModule),
+    forwardRef(() => SectionModule),
   ],
   controllers: [CardController],
   providers: [CardService],

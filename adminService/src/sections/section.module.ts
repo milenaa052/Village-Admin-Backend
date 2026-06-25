@@ -10,14 +10,16 @@ import { SectionService } from './section.service'
 import { FullSectionService } from './fullSection.service'
 import { SectionController } from './section.controller'
 import { FullSectionController } from './fullSection.controller'
+import { SectionValidatorService } from './rules/section-validator.service'
 import { AuthModule } from '../auth/auth.module'
 
 @Module({
-  imports: [SequelizeModule.forFeature([Section, Content, Card, Stats, Button, Image]),
-    forwardRef(() => AuthModule)
+  imports: [
+    SequelizeModule.forFeature([Section, Content, Card, Stats, Button, Image]),
+    forwardRef(() => AuthModule),
   ],
   controllers: [SectionController, FullSectionController],
-  providers: [SectionService, FullSectionService],
-  exports: [SectionService, FullSectionService]
+  providers: [SectionService, FullSectionService, SectionValidatorService],
+  exports: [SectionService, FullSectionService, SectionValidatorService],
 })
 export class SectionModule {}
