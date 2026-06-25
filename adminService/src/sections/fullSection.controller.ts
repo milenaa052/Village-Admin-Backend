@@ -3,12 +3,12 @@ import { FullSectionService } from './fullSection.service'
 import { CreateFullSectionDto } from './dto/create-full-section.dto'
 import { AuthGuard } from '@nestjs/passport'
 
-@UseGuards(AuthGuard('jwt'))
 @Controller('full/section')
 export class FullSectionController {
     constructor(private readonly fullSectionService: FullSectionService) {}
 
     @Post()
+    @UseGuards(AuthGuard('jwt'))
     async create(@Body() createFullSectionDto: CreateFullSectionDto) {
         return this.fullSectionService.createFullSection(createFullSectionDto)
     }

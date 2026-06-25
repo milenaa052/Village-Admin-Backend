@@ -1,13 +1,18 @@
-import { Controller, Get, Put, Delete, Req, Param, Body, UseGuards, ParseIntPipe } from '@nestjs/common'
+import { Controller, Post, Get, Put, Delete, Param, Body, UseGuards, ParseIntPipe } from '@nestjs/common'
 import { ContentService } from './content.service'
 import { ContentDto } from './dto/content.dto'
+import { CreateContentDto } from './dto/create-content.dto'
 import { AuthGuard } from '@nestjs/passport'
-import { AuthRequest } from '../auth/interface/auth-request.interface'
 
 @UseGuards(AuthGuard('jwt'))
 @Controller('content')
 export class ContentController {
     constructor(private readonly contentService: ContentService) {}
+
+    @Post()
+    async create(@Body() createContentDto: CreateContentDto) {
+        return this.contentService.create(createContentDto)
+    }
 
     @Get()
     async findAll() {
@@ -23,7 +28,6 @@ export class ContentController {
     async update(
         @Param('id', ParseIntPipe) id: number,
         @Body() updateContentDto: ContentDto,
-        @Req() req: AuthRequest,
     ) {
         return this.contentService.update(id, updateContentDto)
     }

@@ -5,12 +5,12 @@ import { UpdateSectionDto } from './dto/update-section.dto'
 import { AuthGuard } from '@nestjs/passport'
 import { AuthRequest } from '../auth/interface/auth-request.interface'
 
-@UseGuards(AuthGuard('jwt'))
 @Controller('section')
 export class SectionController {
     constructor(private readonly sectionService: SectionService) {}
 
     @Post()
+    @UseGuards(AuthGuard('jwt'))
     async create(@Body() createSectionDto: CreateSectionDto) {
         return this.sectionService.create(createSectionDto)
     }
@@ -26,6 +26,7 @@ export class SectionController {
     }
 
     @Put(':id')
+    @UseGuards(AuthGuard('jwt'))
     async update(
         @Param('id', ParseIntPipe) id: number,
         @Body() updateSectionDto: UpdateSectionDto,
@@ -35,6 +36,7 @@ export class SectionController {
     }
 
     @Delete(':id')
+    @UseGuards(AuthGuard('jwt'))
     async deleteById(@Param('id', ParseIntPipe) id: number) {
         return this.sectionService.deleteById(id)
     }

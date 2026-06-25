@@ -1,13 +1,18 @@
-import { Controller, Get, Put, Delete, Req, Param, Body, UseGuards, ParseIntPipe } from '@nestjs/common'
+import { Controller, Post, Get, Put, Delete, Param, Body, UseGuards, ParseIntPipe } from '@nestjs/common'
 import { CardService } from './card.service'
 import { CardDto } from './dto/card.dto'
+import { CreateCardDto } from './dto/create-card.dto'
 import { AuthGuard } from '@nestjs/passport'
-import { AuthRequest } from '../auth/interface/auth-request.interface'
 
 @UseGuards(AuthGuard('jwt'))
 @Controller('card')
 export class CardController {
     constructor(private readonly cardService: CardService) {}
+
+    @Post()
+    async create(@Body() createCardDto: CreateCardDto) {
+        return this.cardService.create(createCardDto)
+    }
 
     @Get()
     async findAll() {
@@ -23,7 +28,6 @@ export class CardController {
     async update(
         @Param('id', ParseIntPipe) id: number,
         @Body() updateCardDto: CardDto,
-        @Req() req: AuthRequest,
     ) {
         return this.cardService.update(id, updateCardDto)
     }
