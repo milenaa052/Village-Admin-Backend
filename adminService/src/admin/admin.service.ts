@@ -8,6 +8,7 @@ import { AdminResponseDto } from './interface/admin-response.dto'
 import { UserType } from './interface/admin.interface'
 import { AdminValidatorService } from './admin-validator.service'
 import { AdminMapperService } from './admin-mapper.service'
+import { AdminInviteService } from './admin-invite.service'
 
 @Injectable()
 export class AdminService {
@@ -15,14 +16,18 @@ export class AdminService {
         @InjectModel(Admin)
         private readonly adminModel: typeof Admin,
         private readonly validator: AdminValidatorService,
-        private readonly mapper: AdminMapperService
+        private readonly mapper: AdminMapperService,
+        private readonly inviteService: AdminInviteService
     ) {}
 
     async create(createAdminDto: CreateAdminDto): Promise<AdminResponseDto> {
-        const emailAlreadyExists = await this.findByEmail(
-            createAdminDto.email
-        )
+        const expectedEmail = await this.inviteService.validateToken(createAdminDto.inviteToken)
 
+        if (expectedEmail !== createAdminDto.email) {
+            throw new BadRequestException('O email não corresponde ao convite recebido')
+        }
+
+        const emailAlreadyExists = await this.findByEmail(createAdminDto.email)
         if (emailAlreadyExists) {
             throw new ConflictException('Este email já está cadastrado')
         }
@@ -34,6 +39,8 @@ export class AdminService {
                 ...createAdminDto,
                 type: UserType.ADMIN
             })
+
+            await this.inviteService.consumeToken(createAdminDto.inviteToken)
 
             return this.mapper.toResponse(admin)
         } catch (error) {
@@ -47,7 +54,6 @@ export class AdminService {
 
     async findById(id: number) {
         const admin = await this.adminModel.findByPk(id)
-
         if (!admin) throw new NotFoundException('Administrador não encontrado')
         return admin
     }
@@ -55,17 +61,13 @@ export class AdminService {
     async findByEmail(email: string): Promise<Admin | null> {
         return this.adminModel.findOne({
             where: { email },
-            attributes: { 
-                include: ['password'] 
-            }
+            attributes: { include: ['password'] }
         })
     }
 
     async update(id: number, loggedAdminId: number, updateAdminDto: UpdateAdminDto) {
         if (id !== loggedAdminId) {
-            throw new ForbiddenException(
-                'Você não tem permissão para editar este usuário'
-            )
+            throw new ForbiddenException('Você não tem permissão para editar este usuário')
         }
 
         const admin = await this.adminModel.findByPk(id)
@@ -78,10 +80,7 @@ export class AdminService {
         }
 
         if (updateAdminDto.currentPassword || updateAdminDto.newPassword) {
-            await this.handlePasswordUpdate(
-                admin,
-                updateAdminDto
-            )
+            await this.handlePasswordUpdate(admin, updateAdminDto)
         }
 
         admin.name = updateAdminDto.name ?? admin.name
@@ -91,31 +90,21 @@ export class AdminService {
             await admin.save()
             return this.mapper.toResponse(admin)
         } catch (error) {
-            throw new InternalServerErrorException(
-                'Erro ao atualizar administrador'
-            )
+            throw new InternalServerErrorException('Erro ao atualizar administrador')
         }
     }
 
     private async handlePasswordUpdate(admin: Admin, updateAdminDto: UpdateAdminDto): Promise<void> {
         if (!updateAdminDto.currentPassword || !updateAdminDto.newPassword) {
-            throw new BadRequestException(
-                'Senha atual e nova senha são obrigatórias'
-            )
+            throw new BadRequestException('Senha atual e nova senha são obrigatórias')
         }
 
-        const correctPassword = await admin.comparePassword(
-            updateAdminDto.currentPassword
-        )
-
+        const correctPassword = await admin.comparePassword(updateAdminDto.currentPassword)
         if (!correctPassword) {
             throw new BadRequestException('Senha atual incorreta')
         }
 
-        const passwordValidation = PasswordValidator.validatePasswordLevel(
-            updateAdminDto.newPassword
-        )
-
+        const passwordValidation = PasswordValidator.validatePasswordLevel(updateAdminDto.newPassword)
         if (!passwordValidation.validate) {
             throw new BadRequestException({
                 message: 'Senha muito fraca',
