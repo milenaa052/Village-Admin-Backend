@@ -4,7 +4,9 @@ import { v4 as uuidv4 } from 'uuid'
 import { existsSync, mkdirSync } from 'fs'
 import { BadRequestException } from '@nestjs/common'
 
-const UPLOAD_DIR = '/app/uploads'
+// Resolve relative to CWD so the path is consistent in both Docker (/app/uploads)
+// and local development (adminService/uploads), matching how main.ts serves static files.
+const UPLOAD_DIR = join(process.cwd(), 'uploads')
 
 if (!existsSync(UPLOAD_DIR)) {
     mkdirSync(UPLOAD_DIR, { recursive: true })
