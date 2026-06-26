@@ -58,8 +58,6 @@ describe('AdminInviteService', () => {
         service = module.get<AdminInviteService>(AdminInviteService)
     })
 
-    // ─── sendInvite ──────────────────────────────────────────────────────────
-
     describe('sendInvite', () => {
 
         it('deve lançar ConflictException se email já estiver cadastrado', async () => {
@@ -179,8 +177,6 @@ describe('AdminInviteService', () => {
         })
     })
 
-    // ─── validateToken ───────────────────────────────────────────────────────
-
     describe('validateToken', () => {
 
         it('deve retornar o email vinculado ao token quando válido', async () => {
@@ -214,8 +210,6 @@ describe('AdminInviteService', () => {
             ).rejects.toBeInstanceOf(BadRequestException)
         })
     })
-
-    // ─── consumeToken ────────────────────────────────────────────────────────
 
     describe('consumeToken', () => {
 

@@ -6,6 +6,7 @@ import { Image } from '../src/images/images.model'
 import { ImageValidatorService } from '../src/images/image-validator.service'
 import { ImageMapperService } from '../src/images/image-mapper.service'
 import { ImageFileService } from '../src/images/image-file.service'
+import { SectionValidatorService } from '../src/sections/rules/section-validator.service'
 
 jest.mock('file-type', () => ({
     __esModule: true,
@@ -49,9 +50,16 @@ describe('ImageService', () => {
         remove: jest.fn()
     }
 
+    const mockSectionValidator = {
+        validateImageCreate: jest.fn()
+    }
+
     beforeEach(async () => {
 
         jest.clearAllMocks()
+
+        mockSectionValidator.validateImageCreate.mockResolvedValue(undefined)
+        mockValidator.validate.mockResolvedValue(undefined)
 
         const module: TestingModule = await Test.createTestingModule({
             providers: [
@@ -71,6 +79,10 @@ describe('ImageService', () => {
                 {
                     provide: ImageFileService,
                     useValue: mockFileService
+                },
+                {
+                    provide: SectionValidatorService,
+                    useValue: mockSectionValidator
                 }
             ]
         }).compile()
@@ -149,7 +161,6 @@ describe('ImageService', () => {
             originalname: 'image.jpg'
         } as Express.Multer.File
 
-        mockValidator.validate.mockResolvedValue(undefined)
         mockFileService.generateUrl.mockReturnValue(
             'http://localhost/image.jpg'
         )
@@ -174,8 +185,7 @@ describe('ImageService', () => {
         )
 
         expect(mockImageModel.create).toHaveBeenCalled()
-        expect(result.imageUrl)
-            .toBe('http://localhost/image.jpg')
+        expect(result.imageUrl).toBe('http://localhost/image.jpg')
     })
 
     it('deve lançar BadRequestException se arquivo não for enviado', async () => {
@@ -245,7 +255,6 @@ describe('ImageService', () => {
             originalname: 'image.jpg'
         } as Express.Multer.File
 
-        mockValidator.validate.mockResolvedValue(undefined)
         mockFileService.generateUrl.mockReturnValue('http://localhost/image.jpg')
         mockImageModel.create.mockRejectedValue(new Error())
 
@@ -257,14 +266,9 @@ describe('ImageService', () => {
                 },
                 file
             )
-        ).rejects.toBeInstanceOf(
-            InternalServerErrorException
-        )
+        ).rejects.toBeInstanceOf(InternalServerErrorException)
 
-        expect(mockFileService.remove)
-            .toHaveBeenCalledWith(
-                '/uploads/image.jpg'
-            )
+        expect(mockFileService.remove).toHaveBeenCalledWith('/uploads/image.jpg')
     })
 
     it('deve atualizar imagem com sucesso', async () => {
@@ -310,10 +314,7 @@ describe('ImageService', () => {
         }
 
         mockImageModel.findByPk.mockResolvedValue(mockImage)
-        mockValidator.validate.mockResolvedValue(undefined)
-        mockFileService.generateUrl.mockReturnValue(
-            'new.jpg'
-        )
+        mockFileService.generateUrl.mockReturnValue('new.jpg')
 
         const result = await service.update(
             1,

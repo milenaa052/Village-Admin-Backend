@@ -41,8 +41,6 @@ describe('CardService', () => {
         service = module.get<CardService>(CardService)
     })
 
-    // ─── create ──────────────────────────────────────────────────────────────
-
     describe('create', () => {
 
         it('deve criar um card com sucesso', async () => {
@@ -111,8 +109,6 @@ describe('CardService', () => {
         })
     })
 
-    // ─── findAll ─────────────────────────────────────────────────────────────
-
     describe('findAll', () => {
 
         it('deve retornar todos os cards', async () => {
@@ -129,8 +125,6 @@ describe('CardService', () => {
             expect(result).toEqual(cards)
         })
     })
-
-    // ─── findById ────────────────────────────────────────────────────────────
 
     describe('findById', () => {
 
@@ -159,8 +153,6 @@ describe('CardService', () => {
             ).rejects.toBeInstanceOf(NotFoundException)
         })
     })
-
-    // ─── update ──────────────────────────────────────────────────────────────
 
     describe('update', () => {
 
@@ -242,8 +234,6 @@ describe('CardService', () => {
             ).rejects.toBeInstanceOf(BadRequestException)
         })
     })
-
-    // ─── deleteById ──────────────────────────────────────────────────────────
 
     describe('deleteById', () => {
 

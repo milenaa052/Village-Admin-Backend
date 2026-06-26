@@ -41,15 +41,13 @@ describe('ContentService', () => {
         service = module.get<ContentService>(ContentService)
     })
 
-    // ─── create ──────────────────────────────────────────────────────────────
-
     describe('create', () => {
 
         it('deve criar conteúdo com sucesso', async () => {
 
             const mockContent = {
                 idContent: 1,
-                type: 'text',
+                type: ContentType.P1,
                 content: 'Texto',
                 sectionId: 1
             }
@@ -67,7 +65,7 @@ describe('ContentService', () => {
                 .toHaveBeenCalledWith(1)
 
             expect(mockContentModel.create).toHaveBeenCalledWith({
-                type: 'text',
+                type: ContentType.P1,
                 content: 'Texto',
                 sectionId: 1
             })
@@ -106,8 +104,6 @@ describe('ContentService', () => {
         })
     })
 
-    // ─── findAll ─────────────────────────────────────────────────────────────
-
     describe('findAll', () => {
 
         it('deve retornar todos os conteúdos', async () => {
@@ -124,8 +120,6 @@ describe('ContentService', () => {
             expect(result).toEqual(contents)
         })
     })
-
-    // ─── findById ────────────────────────────────────────────────────────────
 
     describe('findById', () => {
 
@@ -149,8 +143,6 @@ describe('ContentService', () => {
             ).rejects.toBeInstanceOf(NotFoundException)
         })
     })
-
-    // ─── update ──────────────────────────────────────────────────────────────
 
     describe('update', () => {
 
@@ -194,8 +186,6 @@ describe('ContentService', () => {
             ).rejects.toBeInstanceOf(BadRequestException)
         })
     })
-
-    // ─── deleteById ──────────────────────────────────────────────────────────
 
     describe('deleteById', () => {
 
