@@ -1,3 +1,7 @@
+jest.mock('../src/utils/smtp', () => ({
+    sendEmail: jest.fn()
+}))
+
 import { Test, TestingModule } from '@nestjs/testing'
 import { BadRequestException, ConflictException, ForbiddenException, InternalServerErrorException, NotFoundException } from '@nestjs/common'
 import { getModelToken } from '@nestjs/sequelize'
@@ -7,6 +11,7 @@ import { PasswordValidator } from '../src/admin/password.validator'
 import { UserType } from '../src/admin/interface/admin.interface'
 import { AdminValidatorService } from '../src/admin/admin-validator.service'
 import { AdminMapperService } from '../src/admin/admin-mapper.service'
+import { AdminInviteService } from '../src/admin/admin-invite.service'
 
 describe('AdminService', () => {
 
@@ -25,6 +30,11 @@ describe('AdminService', () => {
 
     const mockMapperService = {
         toResponse: jest.fn()
+    }
+
+    const mockInviteService = {
+        validateToken: jest.fn(),
+        consumeToken: jest.fn()
     }
 
     beforeEach(async () => {
@@ -57,6 +67,10 @@ describe('AdminService', () => {
                 {
                     provide: AdminMapperService,
                     useValue: mockMapperService
+                },
+                {
+                    provide: AdminInviteService,
+                    useValue: mockInviteService
                 }
             ]
         }).compile()
@@ -65,6 +79,9 @@ describe('AdminService', () => {
     })
 
     it('deve criar um administrador com sucesso', async () => {
+
+        mockInviteService.validateToken.mockResolvedValue('admin@email.com')
+        mockInviteService.consumeToken.mockResolvedValue(undefined)
 
         jest.spyOn(service, 'findByEmail').mockResolvedValue(null)
         jest.spyOn(
@@ -98,7 +115,8 @@ describe('AdminService', () => {
             name: 'Admin',
             email: 'admin@email.com',
             password: 'Senha123@',
-            phone: '41999999999'
+            phone: '41999999999',
+            inviteToken: 'valid-token'
         })
 
         expect(mockAdminModel.create).toHaveBeenCalled()
@@ -115,6 +133,7 @@ describe('AdminService', () => {
 
     it('deve lançar ConflictException se email já existir', async () => {
 
+        mockInviteService.validateToken.mockResolvedValue('admin@email.com')
         jest.spyOn(service, 'findByEmail').mockResolvedValue({} as Admin)
 
         await expect(
@@ -122,21 +141,20 @@ describe('AdminService', () => {
                 name: 'Admin',
                 email: 'admin@email.com',
                 password: 'Senha123@',
-                phone: '41999999999'
+                phone: '41999999999',
+                inviteToken: 'valid-token'
             })
         ).rejects.toBeInstanceOf(ConflictException)
     })
 
     it('deve lançar BadRequestException para senha fraca', async () => {
 
-        jest.spyOn(service, 'findByEmail')
-            .mockResolvedValue(null)
+        mockInviteService.validateToken.mockResolvedValue('admin@email.com')
+        jest.spyOn(service, 'findByEmail').mockResolvedValue(null)
 
         mockValidatorService.validatePassword
             .mockImplementation(() => {
-                throw new BadRequestException(
-                    'Senha muito fraca'
-                )
+                throw new BadRequestException('Senha muito fraca')
             })
 
         await expect(
@@ -144,11 +162,10 @@ describe('AdminService', () => {
                 name: 'Admin',
                 email: 'admin@email.com',
                 password: '123',
-                phone: '41999999999'
+                phone: '41999999999',
+                inviteToken: 'valid-token'
             })
-        ).rejects.toBeInstanceOf(
-            BadRequestException
-        )
+        ).rejects.toBeInstanceOf(BadRequestException)
     })
 
     it('deve retornar todos os administradores', async () => {
@@ -210,13 +227,7 @@ describe('AdminService', () => {
     it('deve lançar ForbiddenException se usuário tentar editar outro administrador', async () => {
 
         await expect(
-            service.update(
-                1,
-                2,
-                {
-                    name: 'Novo Nome'
-                }
-            )
+            service.update(1, 2, { name: 'Novo Nome' })
         ).rejects.toBeInstanceOf(ForbiddenException)
     })
 
@@ -225,13 +236,7 @@ describe('AdminService', () => {
         mockAdminModel.findByPk.mockResolvedValue(null)
 
         await expect(
-            service.update(
-                1,
-                1,
-                {
-                    name: 'Novo Nome'
-                }
-            )
+            service.update(1, 1, { name: 'Novo Nome' })
         ).rejects.toBeInstanceOf(NotFoundException)
     })
 
@@ -245,13 +250,7 @@ describe('AdminService', () => {
         mockAdminModel.findByPk.mockResolvedValue(mockAdmin)
 
         await expect(
-            service.update(
-                1,
-                1,
-                {
-                    email: 'novo@email.com'
-                }
-            )
+            service.update(1, 1, { email: 'novo@email.com' })
         ).rejects.toBeInstanceOf(BadRequestException)
     })
 
@@ -269,14 +268,10 @@ describe('AdminService', () => {
         }
 
         mockAdminModel.findByPk.mockResolvedValue(mockAdmin)
-        const result = await service.update(
-            1,
-            1,
-            {
-                name: 'Novo Nome',
-                phone: '41888888888'
-            }
-        )
+        const result = await service.update(1, 1, {
+            name: 'Novo Nome',
+            phone: '41888888888'
+        })
 
         expect(mockAdmin.save).toHaveBeenCalled()
         expect(result.name).toBe('Novo Nome')
@@ -295,14 +290,9 @@ describe('AdminService', () => {
         }
 
         mockAdminModel.findByPk.mockResolvedValue(mockAdmin)
+
         await expect(
-            service.update(
-                1,
-                1,
-                {
-                    name: 'Novo Nome'
-                }
-            )
+            service.update(1, 1, { name: 'Novo Nome' })
         ).rejects.toBeInstanceOf(InternalServerErrorException)
     })
 
@@ -337,14 +327,10 @@ describe('AdminService', () => {
         }
 
         mockAdminModel.findByPk.mockResolvedValue(mockAdmin)
-        await service.update(
-            1,
-            1,
-            {
-                currentPassword: '123',
-                newPassword: 'NovaSenha123@'
-            }
-        )
+        await service.update(1, 1, {
+            currentPassword: '123',
+            newPassword: 'NovaSenha123@'
+        })
 
         expect(mockAdmin.comparePassword).toHaveBeenCalledWith('123')
         expect(mockAdmin.password).toBe('NovaSenha123@')
@@ -361,43 +347,31 @@ describe('AdminService', () => {
         mockAdminModel.findByPk.mockResolvedValue(mockAdmin)
 
         await expect(
-            service.update(
-                1,
-                1,
-                {
-                    currentPassword: '123',
-                    newPassword: 'NovaSenha123@'
-                }
-            )
+            service.update(1, 1, {
+                currentPassword: '123',
+                newPassword: 'NovaSenha123@'
+            })
         ).rejects.toBeInstanceOf(BadRequestException)
     })
 
     it('deve lançar BadRequestException ao falhar criação do administrador', async () => {
 
-        jest.spyOn(service, 'findByEmail')
-            .mockResolvedValue(null)
-
-        mockValidatorService.validatePassword
-            .mockImplementation(() => undefined)
-
-        mockAdminModel.create
-            .mockRejectedValue(new Error('Erro banco'))
+        mockInviteService.validateToken.mockResolvedValue('admin@email.com')
+        jest.spyOn(service, 'findByEmail').mockResolvedValue(null)
+        mockValidatorService.validatePassword.mockImplementation(() => undefined)
+        mockAdminModel.create.mockRejectedValue(new Error('Erro banco'))
 
         await expect(
             service.create({
                 name: 'Admin',
                 email: 'admin@email.com',
                 password: 'Senha123@',
-                phone: '41999999999'
+                phone: '41999999999',
+                inviteToken: 'valid-token'
             })
-        ).rejects.toThrow(
-            new BadRequestException(
-                'Erro ao criar administrador'
-            )
-        )
+        ).rejects.toThrow(new BadRequestException('Erro ao criar administrador'))
 
-        expect(mockAdminModel.create)
-            .toHaveBeenCalled()
+        expect(mockAdminModel.create).toHaveBeenCalled()
     })
 
     it('deve lançar BadRequestException quando faltar senha atual ou nova senha', async () => {
@@ -410,13 +384,7 @@ describe('AdminService', () => {
         mockAdminModel.findByPk.mockResolvedValue(mockAdmin)
 
         await expect(
-            service.update(
-                1,
-                1,
-                {
-                    currentPassword: '123'
-                }
-            )
+            service.update(1, 1, { currentPassword: '123' })
         ).rejects.toBeInstanceOf(BadRequestException)
     })
 
@@ -447,14 +415,10 @@ describe('AdminService', () => {
         mockAdminModel.findByPk.mockResolvedValue(mockAdmin)
 
         await expect(
-            service.update(
-                1,
-                1,
-                {
-                    currentPassword: '123',
-                    newPassword: '123'
-                }
-            )
+            service.update(1, 1, {
+                currentPassword: '123',
+                newPassword: '123'
+            })
         ).rejects.toBeInstanceOf(BadRequestException)
     })
 })

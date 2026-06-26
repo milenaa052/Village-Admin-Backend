@@ -3,6 +3,7 @@ import { BadRequestException, NotFoundException } from '@nestjs/common'
 import { getModelToken } from '@nestjs/sequelize'
 import { StatsService } from '../src/stats/stats.service'
 import { Stats } from '../src/stats/stats.model'
+import { SectionValidatorService } from '../src/sections/rules/section-validator.service'
 
 describe('StatsService', () => {
 
@@ -10,12 +11,19 @@ describe('StatsService', () => {
 
     const mockStatsModel = {
         findAll: jest.fn(),
-        findByPk: jest.fn()
+        findByPk: jest.fn(),
+        create: jest.fn()
+    }
+
+    const mockSectionValidator = {
+        validateStatsCreate: jest.fn()
     }
 
     beforeEach(async () => {
 
         jest.clearAllMocks()
+
+        mockSectionValidator.validateStatsCreate.mockResolvedValue(undefined)
 
         const module: TestingModule = await Test.createTestingModule({
             providers: [
@@ -23,6 +31,10 @@ describe('StatsService', () => {
                 {
                     provide: getModelToken(Stats),
                     useValue: mockStatsModel
+                },
+                {
+                    provide: SectionValidatorService,
+                    useValue: mockSectionValidator
                 }
             ]
         }).compile()
@@ -88,12 +100,8 @@ describe('StatsService', () => {
         mockStatsModel.findByPk.mockResolvedValue(mockStats)
         const result = await service.update(1, {} as any)
 
-        expect(mockStatsModel.findByPk)
-            .toHaveBeenCalledWith(1)
-
-        expect(mockStats.save)
-            .toHaveBeenCalled()
-
+        expect(mockStatsModel.findByPk).toHaveBeenCalledWith(1)
+        expect(mockStats.save).toHaveBeenCalled()
         expect(result).toEqual(mockStats)
     })
 
@@ -102,10 +110,7 @@ describe('StatsService', () => {
         mockStatsModel.findByPk.mockResolvedValue(null)
 
         await expect(
-            service.update(
-                1,
-                {} as any
-            )
+            service.update(1, {} as any)
         ).rejects.toBeInstanceOf(NotFoundException)
     })
 
@@ -119,6 +124,7 @@ describe('StatsService', () => {
         }
 
         mockStatsModel.findByPk.mockResolvedValue(mockStats)
+
         await expect(
             service.update(1, {} as any)
         ).rejects.toBeInstanceOf(BadRequestException)
@@ -134,14 +140,10 @@ describe('StatsService', () => {
         mockStatsModel.findByPk.mockResolvedValue(mockStats)
         const result = await service.deleteById(1)
 
-        expect(mockStatsModel.findByPk)
-            .toHaveBeenCalledWith(1)
-
-        expect(mockStats.destroy)
-            .toHaveBeenCalled()
-
+        expect(mockStatsModel.findByPk).toHaveBeenCalledWith(1)
+        expect(mockStats.destroy).toHaveBeenCalled()
         expect(result).toEqual({
-            message: 'Estatísticas deletada com sucesso'
+            message: 'Estatística deletada com sucesso'
         })
     })
 
